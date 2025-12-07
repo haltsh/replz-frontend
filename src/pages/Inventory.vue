@@ -265,6 +265,7 @@ function getDdayStyle(dday: number | null | undefined) {
 * {
   box-sizing: border-box;
 }
+
 html, body {
   margin: 0;
   height: 100%;
@@ -281,9 +282,11 @@ html, body {
   display: flex;
   flex-direction: column;
 }
+
 /* 상단 고정 영역 */
 .add-section-wrapper {
   flex-shrink: 0;
+  padding: 16px 16px 0 16px;
 }
 
 .page-content {
@@ -296,70 +299,15 @@ html, body {
 .inventory-section-wrapper {
   flex: 1;
   overflow-y: auto;
-  min-height: 0;       /* 스크롤 영역 계산에 파괴적으로 중요 */
+  min-height: 0;
   -webkit-overflow-scrolling: touch;
-}
-
-.app-container {
-  width: 100%;
-  height: 100vh;
-  max-width: 428px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  background: #f8f9fa;
-  position: relative;
-}
-
-/* 상단바 */
-.top-bar {
-  height: 10vh;
-  background: #FF6600;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.logo {
-  height: 60%;
-}
-
-.logo-img {
-  height: 100%;
-  width: auto;
-}
-
-.scan-btn {
-  background: white;
-  color: #FF6600;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.scan-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-/* 메인 콘텐츠 */
-.main-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px;
-  padding-bottom: 0;
+  padding: 0 16px 16px 16px;
 }
 
 /* 토스트 알림 */
 .toast-notification {
   position: fixed;
-  top: 12vh;
+  top: 80px;
   right: 20px;
   padding: 12px 20px;
   border-radius: 8px;
@@ -389,17 +337,16 @@ html, body {
   }
 }
 
-/* 재고 관리 섹션 (상단) */
+/* 재고 관리 섹션 */
 .add-section {
   background: white;
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  min-height: 180px;
-  max-height: 22vh;
   display: flex;
   flex-direction: column;
+  /* 높이 제한 완전 제거 */
 }
 
 .section-title {
@@ -410,10 +357,9 @@ html, body {
 }
 
 .add-form {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;  /* 8px → 10px */
 }
 
 .form-row {
@@ -455,13 +401,13 @@ html, body {
   background: #FF6600;
   color: white;
   border: none;
-  padding: 10px;
+  padding: 12px;  /* 10px → 12px */
   border-radius: 8px;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;
-  margin-top: auto;
+  margin-top: 4px;  /* 버튼 위 여백 */
 }
 
 .add-btn:hover:not(:disabled) {
@@ -474,7 +420,7 @@ html, body {
   cursor: not-allowed;
 }
 
-/* 재고 확인 섹션 (하단) */
+/* 재고 확인 섹션 */
 .inventory-section {
   background: white;
   border-radius: 12px;
@@ -482,17 +428,18 @@ html, body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
+  height: 100%;
 }
+
 .inventory-section-wrapper::-webkit-scrollbar {
   width: 8px;
 }
+
 .inventory-section-wrapper::-webkit-scrollbar-track {
   background: #e5e5e5;
   border-radius: 4px;
 }
+
 .inventory-section-wrapper::-webkit-scrollbar-thumb {
   background: #FF6600;
   border-radius: 4px;
@@ -503,6 +450,7 @@ html, body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
+  flex-shrink: 0;
 }
 
 .count-badge {
@@ -516,6 +464,7 @@ html, body {
 
 .search-bar {
   margin-bottom: 12px;
+  flex-shrink: 0;
 }
 
 .search-input {
@@ -538,6 +487,7 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-height: 0;
 }
 
 .inventory-item {
@@ -608,59 +558,7 @@ html, body {
   transform: scale(1.1);
 }
 
-/* 하단바 */
-.bottom-bar {
-  height: 10vh;
-  background: white;
-  border-top: 2px solid #FF6600;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  padding: 0 20px;
-}
-.nav-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px 16px;
-  transition: all 0.2s;
-  border-radius: 8px;
-}
-
-.nav-btn:hover {
-  background: #fff5f0;
-}
-
-.nav-btn.active {
-  background: #fff5f0;
-}
-
-.nav-btn.active .nav-icon {
-  transform: scale(1.2);
-}
-
-.nav-btn.active .nav-label {
-  color: #FF6600;
-  font-weight: 700;
-}
-
-.nav-icon {
-  font-size: 24px;
-  transition: transform 0.2s;
-}
-
-.nav-label {
-  font-size: 11px;
-  font-weight: 500;
-  color: #666;
-  transition: all 0.2s;
-}
-
-/* 스크롤바 스타일 - 항상 표시 */
+/* 스크롤바 스타일 */
 .inventory-list::-webkit-scrollbar {
   width: 8px;
 }
@@ -685,12 +583,5 @@ html, body {
 .inventory-list {
   scrollbar-width: thin;
   scrollbar-color: #FF6600 #f1f1f1;
-}
-
-/* 반응형 */
-@media (max-width: 428px) {
-  .app-container {
-    max-width: 100%;
-  }
 }
 </style>
