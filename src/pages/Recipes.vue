@@ -434,7 +434,7 @@ function getDdayClass(dday: number | null | undefined) {
       </section>
     </div>
 
-    <!-- 레시피 상세보기 모달 -->
+  <!-- 레시피 상세보기 모달 -->
     <Teleport to="body">
       <div
         v-if="showModal"
@@ -446,163 +446,209 @@ function getDdayClass(dday: number | null | undefined) {
             v-if="modalLoading"
             class="modal-loading"
           >
-            <div class="spinner"></div>
-            <p>레시피 정보를 불러오는 중...</p>
+            <div class="loading-animation">
+              <div class="spinner-ring"></div>
+              <div class="spinner-ring"></div>
+              <div class="spinner-ring"></div>
+            </div>
+            <p class="loading-text">레시피 정보를 불러오는 중...</p>
           </div>
 
           <div
             v-else-if="selectedRecipe"
             class="recipe-detail"
           >
-            <header class="modal-header">
-              <h2>{{ selectedRecipe.title }}</h2>
+            <!-- 히어로 이미지 섹션 -->
+            <div class="hero-section">
               <button
                 class="close-btn"
                 @click="closeModal"
               >
-                ✕
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
               </button>
-            </header>
-
-            <div
-              v-if="selectedRecipe.image"
-              class="detail-image"
-            >
-              <img
-                :src="selectedRecipe.image"
-                :alt="selectedRecipe.title"
-              />
+              <div
+                v-if="selectedRecipe.image"
+                class="hero-image"
+              >
+                <img
+                  :src="selectedRecipe.image"
+                  :alt="selectedRecipe.title"
+                />
+                <div class="hero-overlay"></div>
+              </div>
+              <div v-else class="hero-placeholder">
+                <span class="hero-emoji">🍳</span>
+              </div>
+              <div class="hero-title-wrap">
+                <h2 class="hero-title">{{ selectedRecipe.title }}</h2>
+              </div>
             </div>
 
-            <!-- 건강 정보 섹션 -->
-            <section class="detail-section health-section">
-              <h3>💊 영양 정보</h3>
-
-              <div
-                v-if="healthLoading"
-                class="health-loading"
-              >
-                <div class="small-spinner"></div>
-                <span>영양 정보 분석 중...</span>
-              </div>
-
-              <div
-                v-else-if="healthInfo"
-                class="health-info-grid"
-              >
-                <div class="health-item">
-                  <div class="health-icon">🔥</div>
-                  <div class="health-data">
-                    <div class="health-label">칼로리</div>
-                    <div class="health-value">
-                      {{ healthInfo.총칼로리.toFixed(0) }} kcal
-                    </div>
-                  </div>
+            <div class="modal-body">
+              <!-- 영양 정보 섹션 -->
+              <section class="nutrition-section">
+                <div class="section-header-row">
+                  <div class="section-icon">🍽️</div>
+                  <h3 class="section-title-text">영양 정보</h3>
                 </div>
 
-                <div class="health-item">
-                  <div class="health-icon">🍚</div>
-                  <div class="health-data">
-                    <div class="health-label">탄수화물</div>
-                    <div class="health-value">
-                      {{ healthInfo.탄수화물.toFixed(1) }} g
-                    </div>
-                  </div>
-                </div>
-
-                <div class="health-item">
-                  <div class="health-icon">🍭</div>
-                  <div class="health-data">
-                    <div class="health-label">당류</div>
-                    <div class="health-value">
-                      {{ healthInfo.당류.toFixed(1) }} g
-                    </div>
-                  </div>
-                </div>
-
-                <div class="health-item">
-                  <div class="health-icon">🥑</div>
-                  <div class="health-data">
-                    <div class="health-label">지방</div>
-                    <div class="health-value">
-                      {{ healthInfo.지방.toFixed(1) }} g
-                    </div>
-                  </div>
-                </div>
-
-                <div class="health-item">
-                  <div class="health-icon">🥩</div>
-                  <div class="health-data">
-                    <div class="health-label">단백질</div>
-                    <div class="health-value">
-                      {{ healthInfo.단백질.toFixed(1) }} g
-                    </div>
-                  </div>
-                </div>
-
-                <div class="health-item">
-                  <div class="health-icon">🧂</div>
-                  <div class="health-data">
-                    <div class="health-label">나트륨</div>
-                    <div class="health-value">
-                      {{ healthInfo.나트륨.toFixed(1) }} mg
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div
-                v-else
-                class="health-unavailable"
-              >
-                영양 정보를 가져올 수 없습니다.
-              </div>
-            </section>
-
-            <section class="detail-section">
-              <h3>🥘 필요한 재료</h3>
-              <ul class="ingredients-list">
-                <li
-                  v-for="(ing, idx) in selectedRecipe.ingredients"
-                  :key="idx"
+                <div
+                  v-if="healthLoading"
+                  class="nutrition-loading"
                 >
-                  {{ ing }}
-                </li>
-              </ul>
-            </section>
+                  <div class="pulse-loader"></div>
+                  <span>영양 정보 분석 중...</span>
+                </div>
 
-            <section class="detail-section">
-              <h3>👨‍🍳 조리 순서</h3>
-              <ol class="steps-list">
-                <li
-                  v-for="(step, idx) in selectedRecipe.steps"
-                  :key="idx"
+                <div
+                  v-else-if="healthInfo"
+                  class="nutrition-grid"
                 >
-                  {{ step }}
-                </li>
-              </ol>
-            </section>
+                  <div class="nutrition-card calories">
+                    <div class="nutrition-icon-wrap">
+                      <span class="nutrition-emoji">🔥</span>
+                    </div>
+                    <div class="nutrition-info">
+                      <span class="nutrition-label">칼로리</span>
+                      <span class="nutrition-value">{{ healthInfo.총칼로리.toFixed(0) }}<small>kcal</small></span>
+                    </div>
+                  </div>
 
-            <section
-              v-if="selectedRecipe.tips"
-              class="detail-section"
-            >
-              <h3>💡 조리 팁</h3>
-              <p class="tips-text">
-                {{ selectedRecipe.tips }}
-              </p>
-            </section>
+                  <div class="nutrition-card carbs">
+                    <div class="nutrition-icon-wrap">
+                      <span class="nutrition-emoji">🍚</span>
+                    </div>
+                    <div class="nutrition-info">
+                      <span class="nutrition-label">탄수화물</span>
+                      <span class="nutrition-value">{{ healthInfo.탄수화물.toFixed(1) }}<small>g</small></span>
+                    </div>
+                  </div>
 
-            <footer class="modal-footer">
-              <a
-                :href="selectedRecipe.url"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="btn-primary"
+                  <div class="nutrition-card sugar">
+                    <div class="nutrition-icon-wrap">
+                      <span class="nutrition-emoji">🍭</span>
+                    </div>
+                    <div class="nutrition-info">
+                      <span class="nutrition-label">당류</span>
+                      <span class="nutrition-value">{{ healthInfo.당류.toFixed(1) }}<small>g</small></span>
+                    </div>
+                  </div>
+
+                  <div class="nutrition-card fat">
+                    <div class="nutrition-icon-wrap">
+                      <span class="nutrition-emoji">🥑</span>
+                    </div>
+                    <div class="nutrition-info">
+                      <span class="nutrition-label">지방</span>
+                      <span class="nutrition-value">{{ healthInfo.지방.toFixed(1) }}<small>g</small></span>
+                    </div>
+                  </div>
+
+                  <div class="nutrition-card protein">
+                    <div class="nutrition-icon-wrap">
+                      <span class="nutrition-emoji">🥩</span>
+                    </div>
+                    <div class="nutrition-info">
+                      <span class="nutrition-label">단백질</span>
+                      <span class="nutrition-value">{{ healthInfo.단백질.toFixed(1) }}<small>g</small></span>
+                    </div>
+                  </div>
+
+                  <div class="nutrition-card sodium">
+                    <div class="nutrition-icon-wrap">
+                      <span class="nutrition-emoji">🧂</span>
+                    </div>
+                    <div class="nutrition-info">
+                      <span class="nutrition-label">나트륨</span>
+                      <span class="nutrition-value">{{ healthInfo.나트륨.toFixed(1) }}<small>mg</small></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  v-else
+                  class="nutrition-unavailable"
+                >
+                  <span class="unavailable-icon">📊</span>
+                  <span>영양 정보를 가져올 수 없습니다</span>
+                </div>
+              </section>
+
+              <!-- 재료 섹션 -->
+              <section class="ingredients-section">
+                <div class="section-header-row">
+                  <div class="section-icon">🥘</div>
+                  <h3 class="section-title-text">필요한 재료</h3>
+                  <span class="ingredient-count">{{ selectedRecipe.ingredients.length }}가지</span>
+                </div>
+                <div class="ingredients-grid-new">
+                  <div
+                    v-for="(ing, idx) in selectedRecipe.ingredients"
+                    :key="idx"
+                    class="ingredient-chip"
+                  >
+                    <span class="ingredient-bullet">•</span>
+                    <span class="ingredient-text">{{ ing }}</span>
+                  </div>
+                </div>
+              </section>
+
+              <!-- 조리 순서 섹션 -->
+              <section class="steps-section">
+                <div class="section-header-row">
+                  <div class="section-icon">👨‍🍳</div>
+                  <h3 class="section-title-text">조리 순서</h3>
+                </div>
+                <div class="steps-timeline">
+                  <div
+                    v-for="(step, idx) in selectedRecipe.steps"
+                    :key="idx"
+                    class="step-card"
+                  >
+                    <div class="step-number">{{ idx + 1 }}</div>
+                    <div class="step-connector" v-if="idx < selectedRecipe.steps.length - 1"></div>
+                    <div class="step-content">
+                      <p class="step-text">{{ step }}</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- 조리 팁 섹션 -->
+              <section
+                v-if="selectedRecipe.tips"
+                class="tips-section"
               >
-                원본 레시피 보러가기 →
-              </a>
-            </footer>
+                <div class="tips-card">
+                  <div class="tips-header">
+                    <span class="tips-icon">💡</span>
+                    <h3 class="tips-title">조리 팁</h3>
+                  </div>
+                  <p class="tips-content">
+                    {{ selectedRecipe.tips }}
+                  </p>
+                </div>
+              </section>
+
+              <!-- 푸터 버튼 -->
+              <footer class="modal-footer-new">
+                <a
+                  :href="selectedRecipe.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="original-link-btn"
+                >
+                  <span class="btn-text">원본 레시피 보러가기</span>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="7" y1="17" x2="17" y2="7"></line>
+                    <polyline points="7,7 17,7 17,17"></polyline>
+                  </svg>
+                </a>
+              </footer>
+            </div>
           </div>
         </div>
       </div>
@@ -871,134 +917,559 @@ function getDdayClass(dday: number | null | undefined) {
   color: #d32f2f;
 }
 
-/* 모달 */
+/* ================================
+   레시피 상세 모달 - 새로운 디자인
+   ================================ */
+
+/* 모달 오버레이 */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  backdrop-filter: blur(2px);
-  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
+  align-items: flex-start;
   padding: 20px;
   z-index: 3000;
+  overflow-y: auto;
 }
 
 .modal-content {
   background: #ffffff;
   width: 100%;
-  max-width: 420px;
-  max-height: 90vh;
+  max-width: 440px;
+  max-height: 92vh;
   overflow-y: auto;
-  border-radius: 16px;
-  padding: 18px;
+  overflow-x: hidden;
+  border-radius: 24px;
   position: relative;
-  animation: popup 0.15s ease;
+  animation: modalSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
-@keyframes popup {
+.modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+
+@keyframes modalSlideUp {
   from {
-    transform: scale(0.96);
-    opacity: 0.3;
+    transform: translateY(30px);
+    opacity: 0;
   }
   to {
-    transform: scale(1);
+    transform: translateY(0);
     opacity: 1;
   }
 }
 
-/* 모달 헤더 */
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 22px;
-  color: #777;
-}
-
-/* 건강 정보 */
-.health-section {
-  margin-top: 16px;
-}
-
-.health-loading {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #666;
-  font-size: 13px;
-}
-
-.small-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2.2px solid #cfd8dc;
-  border-top-color: #4e91ff;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-}
-
-.health-info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.health-item {
-  display: flex;
-  gap: 10px;
-  background: #f8fbff;
-  border: 1.5px solid #e0ebff;
-  padding: 10px;
-  border-radius: 10px;
-}
-
-.health-icon {
-  font-size: 18px;
-}
-
-.health-label {
-  font-size: 12px;
-  color: #777;
-}
-
-.health-value {
-  font-size: 14px;
-  color: #333;
-  font-weight: 600;
-}
-
-/* 모달 내부 섹션 */
-.detail-section {
-  margin-top: 18px;
-}
-
-.ingredients-list li,
-.steps-list li {
-  font-size: 14px;
-  margin-bottom: 6px;
-  color: #444;
-  line-height: 1.45;
-}
-
-/* 모달 footer */
-.modal-footer {
-  margin-top: 20px;
+/* 모달 로딩 */
+.modal-loading {
+  padding: 60px 20px;
   text-align: center;
 }
 
-.modal-footer .btn-primary {
-  width: auto;
-  padding: 10px 20px;
+.loading-animation {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  margin: 0 auto 20px;
 }
 
-/* 로딩 스피너 */
+.spinner-ring {
+  position: absolute;
+  inset: 0;
+  border: 3px solid transparent;
+  border-radius: 50%;
+  animation: spinMulti 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+.spinner-ring:nth-child(1) {
+  border-top-color: #6366f1;
+  animation-delay: -0.3s;
+}
+
+.spinner-ring:nth-child(2) {
+  border-top-color: #8b5cf6;
+  animation-delay: -0.15s;
+  inset: 4px;
+}
+
+.spinner-ring:nth-child(3) {
+  border-top-color: #a78bfa;
+  inset: 8px;
+}
+
+@keyframes spinMulti {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* 히어로 섹션 */
+.hero-section {
+  position: relative;
+  width: 100%;
+  min-height: 220px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  overflow: hidden;
+}
+
+.hero-image {
+  position: relative;
+  width: 100%;
+  height: 240px;
+}
+
+.hero-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 40%,
+    rgba(0, 0, 0, 0.7) 100%
+  );
+}
+
+.hero-placeholder {
+  width: 100%;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.hero-emoji {
+  font-size: 64px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+.hero-title-wrap {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px;
+  background: linear-gradient(to top, rgba(0,0,0,0.75), transparent);
+}
+
+.hero-title {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  margin: 0;
+}
+
+.close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.close-btn:hover {
+  background: #fff;
+  transform: scale(1.05);
+}
+
+.close-btn svg {
+  color: #374151;
+}
+
+/* 모달 바디 */
+.modal-body {
+  padding: 20px;
+}
+
+/* 섹션 헤더 */
+.section-header-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.section-icon {
+  font-size: 22px;
+}
+
+.section-title-text {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  flex: 1;
+}
+
+/* 영양 정보 섹션 */
+.nutrition-section {
+  margin-bottom: 28px;
+}
+
+.nutrition-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.pulse-loader {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(0.8); opacity: 0.5; }
+  50% { transform: scale(1); opacity: 1; }
+}
+
+.nutrition-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.nutrition-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.nutrition-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.nutrition-card.calories {
+  background: linear-gradient(135deg, #fef3c7 0%, #fef9c3 100%);
+  border-color: #fcd34d;
+}
+
+.nutrition-card.carbs {
+  background: linear-gradient(135deg, #dbeafe 0%, #e0f2fe 100%);
+  border-color: #93c5fd;
+}
+
+.nutrition-card.sugar {
+  background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+  border-color: #f9a8d4;
+}
+
+.nutrition-card.fat {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  border-color: #6ee7b7;
+}
+
+.nutrition-card.protein {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border-color: #fca5a5;
+}
+
+.nutrition-card.sodium {
+  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+  border-color: #a5b4fc;
+}
+
+.nutrition-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nutrition-emoji {
+  font-size: 18px;
+}
+
+.nutrition-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.nutrition-label {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.nutrition-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.nutrition-value small {
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.nutrition-unavailable {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  background: #f8fafc;
+  border-radius: 12px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.unavailable-icon {
+  font-size: 20px;
+}
+
+/* 재료 섹션 */
+.ingredients-section {
+  margin-bottom: 28px;
+}
+
+.ingredient-count {
+  font-size: 13px;
+  color: #6366f1;
+  background: #eef2ff;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.ingredients-grid-new {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ingredient-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  font-size: 13px;
+  color: #475569;
+  transition: all 0.2s ease;
+}
+
+.ingredient-chip:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.ingredient-bullet {
+  color: #6366f1;
+  font-weight: bold;
+}
+
+.ingredient-text {
+  font-weight: 500;
+}
+
+/* 조리 순서 섹션 */
+.steps-section {
+  margin-bottom: 28px;
+}
+
+.steps-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.step-card {
+  display: flex;
+  gap: 14px;
+  position: relative;
+  padding-bottom: 20px;
+}
+
+.step-card:last-child {
+  padding-bottom: 0;
+}
+
+.step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.step-connector {
+  position: absolute;
+  left: 15px;
+  top: 32px;
+  width: 2px;
+  height: calc(100% - 32px);
+  background: linear-gradient(to bottom, #c7d2fe, #e0e7ff);
+  z-index: 1;
+}
+
+.step-content {
+  flex: 1;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px 16px;
+  transition: all 0.2s ease;
+}
+
+.step-content:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.step-text {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.6;
+  margin: 0;
+  word-break: keep-all;
+}
+
+/* 조리 팁 섹션 */
+.tips-section {
+  margin-bottom: 24px;
+}
+
+.tips-card {
+  background: linear-gradient(135deg, #fef3c7 0%, #fef9c3 100%);
+  border: 1px solid #fcd34d;
+  border-radius: 16px;
+  padding: 16px 18px;
+}
+
+.tips-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.tips-icon {
+  font-size: 22px;
+}
+
+.tips-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #92400e;
+  margin: 0;
+}
+
+.tips-content {
+  font-size: 14px;
+  color: #78350f;
+  line-height: 1.65;
+  margin: 0;
+  word-break: keep-all;
+}
+
+/* 모달 푸터 */
+.modal-footer-new {
+  padding-top: 8px;
+}
+
+.original-link-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+}
+
+.original-link-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+}
+
+.original-link-btn:active {
+  transform: translateY(0);
+}
+
+.original-link-btn svg {
+  flex-shrink: 0;
+}
+
+/* 로딩 스피너 (기존 호환) */
 .spinner {
   width: 28px;
   height: 28px;
