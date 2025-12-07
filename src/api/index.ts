@@ -6,8 +6,9 @@ const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 export function getCurrentUserId(): number {
   const userId = localStorage.getItem('user_id');
   if (!userId) {
-    console.warn('⚠️ 로그인 정보가 없습니다. 기본값 1 사용');
-    return 1;
+    // 로그인 페이지로 리다이렉트
+    window.location.href = '/login';
+    throw new Error('로그인이 필요합니다.');
   }
   return parseInt(userId);
 }
