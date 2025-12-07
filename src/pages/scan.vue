@@ -6,6 +6,7 @@ import {
   upsertItemsBatch,
   addToInventory 
 } from '@/api'
+import { API_HOST } from '@/config/api'
 
 type ItemRow = {
   item_name: string
@@ -216,7 +217,7 @@ function onDaysChange(item: ItemRow) {
       </div>
 
       <div v-if="imageUrl" class="preview">
-        <img :src="`http://localhost:3000${imageUrl}`" alt="영수증" />
+        <img :src="`${API_HOST}${imageUrl}`" alt="영수증" />
       </div>
     </div>
 

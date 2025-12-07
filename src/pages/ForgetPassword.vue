@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { API_BASE } from '@/config/api'
 
 const router = useRouter()
 
@@ -23,7 +24,7 @@ async function verifyUser() {
   error.value = ''
 
   try {
-    const response = await fetch('http://localhost:3000/api/auth/verify-user', {
+    const response = await fetch(`${API_BASE}/auth/verify-user`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -66,7 +67,7 @@ async function resetPassword() {
   error.value = ''
 
   try {
-    const response = await fetch('http://localhost:3000/api/auth/reset-password-simple', {
+    const response = await fetch(`${API_BASE}/auth/reset-password-simple`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

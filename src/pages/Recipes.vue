@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { listInventory } from '@/api'
+import { API_BASE } from '@/config/api'
 
 type InventoryItem = {
   inventory_id: number
@@ -53,7 +54,7 @@ const error = ref('')
 const searchQuery = ref('')
 
 // Express 서버 URL
-const EXPRESS_URL = 'http://localhost:3000/api'
+const EXPRESS_URL = API_BASE
 
 // 모달 관련
 const showModal = ref(false)

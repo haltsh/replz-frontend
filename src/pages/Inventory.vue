@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { listInventory, deleteInventory } from '@/api'
+import { API_BASE } from '@/config/api'
 
 type Row = {
   inventory_id: number; item_id: number; item_name: string;
@@ -41,7 +42,7 @@ function showNotification(message: string, type: 'success' | 'error' = 'success'
 
 async function loadItems() {
   try {
-    const response = await fetch('http://localhost:3000/api/items')
+    const response = await fetch(`${API_BASE}/items`)
     const data = await response.json()
     items.value = data
     if (data.length > 0) {
@@ -89,7 +90,7 @@ async function addInventory() {
   isAdding.value = true
   
   try {
-    const response = await fetch('http://localhost:3000/api/inventories', {
+    const response = await fetch(`${API_BASE}/inventories`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

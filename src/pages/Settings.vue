@@ -1,6 +1,7 @@
 <script setup>
 import { reactive, ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { API_BASE } from '@/config/api'
 
 const router = useRouter()
 
@@ -79,7 +80,7 @@ async function loadHealthProfile() {
   loading.value = true
   try {
     const userId = localStorage.getItem('user_id') || 1
-    const response = await fetch(`http://localhost:3000/api/users/${userId}`)
+    const response = await fetch(`${API_BASE}/users/${userId}`)
     
     if (!response.ok) throw new Error('프로필 로드 실패')
     
@@ -113,7 +114,7 @@ async function loadTodayIntake() {
   try {
     const userId = localStorage.getItem('user_id') || 1
     const today = new Date().toISOString().split('T')[0]
-    const response = await fetch(`http://localhost:3000/api/health/intake/${userId}?date=${today}`)
+    const response = await fetch(`${API_BASE}/health/intake/${userId}?date=${today}`)
     
     if (response.ok) {
       const data = await response.json()
@@ -128,7 +129,7 @@ async function loadTodayIntake() {
 async function loadWeightRecords() {
   try {
     const userId = localStorage.getItem('user_id') || 1
-    const response = await fetch(`http://localhost:3000/api/health/weight/${userId}`)
+    const response = await fetch(`${API_BASE}/health/weight/${userId}`)
     
     if (response.ok) {
       const data = await response.json()
@@ -150,7 +151,7 @@ async function loadWeightRecords() {
 async function loadRecentMeals() {
   try {
     const userId = localStorage.getItem('user_id') || 1
-    const response = await fetch(`http://localhost:3000/api/health/meals/${userId}?days=5`)
+    const response = await fetch(`${API_BASE}/health/meals/${userId}?days=5`)
     
     if (response.ok) {
       const data = await response.json()
@@ -173,7 +174,7 @@ async function saveTodayWeight() {
     const userId = localStorage.getItem('user_id') || 1
     const today = new Date().toISOString().split('T')[0]
     
-    const response = await fetch('http://localhost:3000/api/health/weight', {
+    const response = await fetch(`${API_BASE}/health/weight`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -215,7 +216,7 @@ async function saveHealthProfile() {
   saving.value = true
   try {
     const userId = localStorage.getItem('user_id') || 1
-    const response = await fetch(`http://localhost:3000/api/users/${userId}/health`, {
+    const response = await fetch(`${API_BASE}/users/${userId}/health`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -271,7 +272,7 @@ async function handleLogout() {
   if (!confirmLogout) return
 
   try {
-    await fetch('http://localhost:3000/api/auth/logout', {
+    await fetch(`${API_BASE}/auth/logout`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     })
