@@ -273,27 +273,14 @@ html, body {
 }
 
 .app-root {
-  /* 20:9 — 세로가 가로의 2.222...배 */
-  aspect-ratio: 9 / 20;
-
-  width: 100vw;
-  height: 100vh;
-
-  /* 20:9 계산: 세로는 가로 * (20/9) */
-  max-height: calc(100vw * (20 / 9));
-  max-width: calc(100vh * (9 / 20));
-
-  /* 가운데 배치 */
-  margin: auto;
-
+  width: 100%;
+  height: 100%;
   background: #f8f9fa;
   overflow: hidden;
   position: relative;
-
   display: flex;
   flex-direction: column;
 }
-
 /* 상단 고정 영역 */
 .add-section-wrapper {
   flex-shrink: 0;

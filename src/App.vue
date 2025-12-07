@@ -82,9 +82,11 @@ html, body {
 .app-wrapper {
   width: 100%;
   height: 100%;
-  max-width: 45vh; /* 9:20 비율 유지 (100vh * 9 / 20) */
-  max-height: 100vh;
-  aspect-ratio: 9 / 20;
+  /* 👇 PC에서 보기 좋은 크기 */
+  max-width: 480px;
+  max-height: 932px;
+  /* aspect-ratio 제거 */
+  
   margin: 0 auto;
   display: grid;
   grid-template-rows: 10% 80% 10%;
@@ -94,11 +96,19 @@ html, body {
   position: relative;
 }
 
-/* 가로가 긴 화면용 */
-@media (max-aspect-ratio: 9/20) {
+/* 모바일에서는 전체 화면 */
+@media (max-width: 768px) {
   .app-wrapper {
     max-width: 100vw;
-    max-height: 222.22vw; /* 9:20 비율 (100vw * 20 / 9) */
+    max-height: 100vh;
+  }
+}
+
+/* 큰 화면에서 더 크게 */
+@media (min-width: 1440px) {
+  .app-wrapper {
+    max-width: 540px;
+    max-height: 1080px;
   }
 }
 
@@ -145,8 +155,8 @@ html, body {
   background: #f8f9fa;
   overflow: hidden;
   position: relative;
-  height: 100%;           /* <-- 반드시 추가 */
-  display: flex;          /* <-- 자식이 flex 기준으로 공간 분배받도록 */
+  height: 100%;
+  display: flex;
   flex-direction: column;
 }
 
