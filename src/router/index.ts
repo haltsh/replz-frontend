@@ -80,19 +80,20 @@ const router = createRouter({
 // ==========================================
 // 네비게이션 가드 (인증 체크)
 // ==========================================
-router.beforeEach((to, from, next) => {
+router.beforeEach((
+  to: RouteLocationNormalized, 
+  from: RouteLocationNormalized, 
+  next: NavigationGuardNext
+) => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
   const requiresAuth = to.meta.requiresAuth
 
-  // 로그인이 필요한 페이지인데 로그인 안 했으면
   if (requiresAuth && !isLoggedIn) {
     next('/login')
   } 
-  // 로그인 페이지인데 이미 로그인 했으면
   else if (to.path === '/login' && isLoggedIn) {
     next('/inventory')
   } 
-  // 그 외에는 정상 진행
   else {
     next()
   }
