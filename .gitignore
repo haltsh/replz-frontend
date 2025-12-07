@@ -63,3 +63,10 @@ __pycache__/
 dist/
 .venv/
 *.log
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+.env.test
