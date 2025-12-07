@@ -82,14 +82,14 @@ html, body {
 .app-wrapper {
   width: 100%;
   height: 100%;
-  /* 👇 PC에서 보기 좋은 크기 */
   max-width: 480px;
   max-height: 932px;
-  /* aspect-ratio 제거 */
-  
   margin: 0 auto;
-  display: grid;
-  grid-template-rows: 10% 80% 10%;
+  
+  /* 👇 grid 대신 flex로 변경 */
+  display: flex;
+  flex-direction: column;
+  
   background: #f8f9fa;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
   overflow: hidden;
@@ -112,8 +112,10 @@ html, body {
   }
 }
 
-/* 상단바 */
+/* 상단바 - 고정 높이 */
 .top-bar {
+  flex-shrink: 0;          /* 👈 줄어들지 않음 */
+  height: 60px;            /* 👈 고정 높이 (10% 대신) */
   background: #FF6600;
   display: flex;
   align-items: center;
@@ -150,18 +152,22 @@ html, body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* 메인 콘텐츠 */
+/* 메인 콘텐츠 - 남은 공간 모두 사용 */
 .main-wrapper {
+  flex: 1;                 /* 👈 남은 공간 모두 차지 */
+  min-height: 0;           /* 👈 flex 자식의 스크롤을 위해 필수 */
   background: #f8f9fa;
-  overflow: hidden;
+  overflow-y: auto;        /* 👈 세로 스크롤 활성화 */
+  overflow-x: hidden;
   position: relative;
-  height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-/* 하단바 */
+/* 하단바 - 고정 높이 */
 .bottom-bar {
+  flex-shrink: 0;          /* 👈 줄어들지 않음 */
+  height: 70px;            /* 👈 고정 높이 (10% 대신) */
   background: white;
   border-top: 2px solid #FF6600;
   display: flex;
@@ -210,5 +216,23 @@ html, body {
   font-weight: 500;
   color: #666;
   transition: all 0.2s;
+}
+
+/* 스크롤바 스타일 */
+.main-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+
+.main-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.main-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(255, 102, 0, 0.3);
+  border-radius: 3px;
+}
+
+.main-wrapper::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 102, 0, 0.5);
 }
 </style>
