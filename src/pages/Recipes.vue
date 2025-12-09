@@ -128,19 +128,19 @@ async function searchRecipes() {
       throw new Error(data.error)
     }
 
-    // 선택한 재료 기준으로 재계산
-    const processedRecipes = (data.recipes || []).map(recipe => {
-      const allIngredients = recipe.ingredients || []
+    // ✅ 타입 명시 추가
+    const processedRecipes = (data.recipes || []).map((recipe: any) => {
+      const allIngredients: string[] = recipe.ingredients || []
       
       // 선택한 재료와 매칭
-      const have = allIngredients.filter(ing => 
+      const have = allIngredients.filter((ing: string) => 
         selectedArray.some(selected => 
           ing.includes(selected) || selected.includes(ing)
         )
       )
       
       // 부족한 재료
-      const need = allIngredients.filter(ing => 
+      const need = allIngredients.filter((ing: string) => 
         !selectedArray.some(selected => 
           ing.includes(selected) || selected.includes(ing)
         )
