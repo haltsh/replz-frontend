@@ -127,17 +127,6 @@ async function loadHealthProfile() {
   }
 }
 
-// 재고 목록 불러오기
-async function loadInventory() {
-  try {
-    // ✅ API 함수 사용 (userId 자동 처리)
-    inventoryList.value = await getInventory()
-  } catch (error) {
-    console.error('재고 로드 오류:', error)
-    alert('재고를 불러오는데 실패했습니다.')
-  }
-}
-
 // 오늘의 섭취량 불러오기
 async function loadTodayIntake() {
   try {
@@ -225,11 +214,11 @@ async function saveTodayWeight() {
   }
 }
 
-// 🆕 재고 목록 불러오기
+// 재고 목록 불러오기
 async function loadInventory() {
   try {
     const userId = localStorage.getItem('user_id') || 1
-    const response = await fetch(`${API_BASE}/inventory?user_id=${userId}`)
+    const response = await fetch(`${API_BASE}/inventories?user_id=${userId}`)
     
     if (!response.ok) throw new Error('재고 조회 실패')
     
