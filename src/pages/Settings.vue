@@ -27,6 +27,13 @@ const saving = ref(false)
 const userInfo = ref(null)
 const showEditModal = ref(false)
 
+// 🆕 식사 기록 관련
+const showMealModal = ref(false)
+const inventoryList = ref([])
+const selectedItems = ref([]) // [{ inventory_id, item_id, item_name, quantity, calories, carbs, protein, fat }]
+const mealName = ref('')
+const savingMeal = ref(false)
+
 // 오늘의 섭취 데이터
 const todayIntake = ref({
   calories: 0,
@@ -56,6 +63,16 @@ const intakePercentages = computed(() => ({
   protein: Math.round((todayIntake.value.protein / DAILY_STANDARDS.protein) * 100),
   fat: Math.round((todayIntake.value.fat / DAILY_STANDARDS.fat) * 100)
 }))
+
+// 🆕 선택된 아이템 총 영양소 계산
+const totalNutrients = computed(() => {
+  return selectedItems.value.reduce((acc, item) => ({
+    calories: acc.calories + (item.calories * item.quantity),
+    carbs: acc.carbs + (item.carbs * item.quantity),
+    protein: acc.protein + (item.protein * item.quantity),
+    fat: acc.fat + (item.fat * item.quantity)
+  }), { calories: 0, carbs: 0, protein: 0, fat: 0 })
+})
 
 // 몸무게 그래프 데이터
 const weightChartData = computed(() => {
@@ -193,6 +210,145 @@ async function saveTodayWeight() {
     alert('저장에 실패했습니다.')
   } finally {
     savingWeight.value = false
+  }
+}
+
+// 🆕 재고 목록 불러오기
+async function loadInventory() {
+  try {
+    const userId = localStorage.getItem('user_id') || 1
+    const response = await fetch(`${API_BASE}/inventory?user_id=${userId}`)
+    
+    if (!response.ok) throw new Error('재고 조회 실패')
+    
+    inventoryList.value = await response.json()
+  } catch (error) {
+    console.error('재고 로드 오류:', error)
+    alert('재고를 불러오는데 실패했습니다.')
+  }
+}
+
+// 🆕 식사 기록 모달 열기
+async function openMealModal() {
+  await loadInventory()
+  selectedItems.value = []
+  mealName.value = ''
+  showMealModal.value = true
+}
+
+// 🆕 식사 기록 모달 닫기
+function closeMealModal() {
+  showMealModal.value = false
+  selectedItems.value = []
+  mealName.value = ''
+}
+
+// 🆕 재고 아이템 선택/해제
+function toggleItem(item) {
+  const index = selectedItems.value.findIndex(i => i.inventory_id === item.inventory_id)
+  
+  if (index > -1) {
+    selectedItems.value.splice(index, 1)
+  } else {
+    selectedItems.value.push({
+      inventory_id: item.inventory_id,
+      item_id: item.item_id,
+      item_name: item.item_name,
+      max_quantity: item.quantity,
+      quantity: 1,
+      calories: item.calories || 0,
+      carbs: item.carbs || 0,
+      protein: item.protein || 0,
+      fat: item.fat || 0
+    })
+  }
+}
+
+// 🆕 아이템이 선택되었는지 확인
+function isSelected(inventoryId) {
+  return selectedItems.value.some(i => i.inventory_id === inventoryId)
+}
+
+// 🆕 수량 변경
+function updateQuantity(inventoryId, value) {
+  const item = selectedItems.value.find(i => i.inventory_id === inventoryId)
+  if (item) {
+    const newQty = Math.max(0.1, Math.min(item.max_quantity, Number(value)))
+    item.quantity = newQty
+  }
+}
+
+// 🆕 식사 기록 저장
+async function saveMeal() {
+  if (selectedItems.value.length === 0) {
+    alert('최소 1개 이상의 재료를 선택해주세요.')
+    return
+  }
+  
+  if (!mealName.value.trim()) {
+    alert('식사 이름을 입력해주세요.')
+    return
+  }
+  
+  savingMeal.value = true
+  try {
+    const userId = localStorage.getItem('user_id') || 1
+    const today = new Date().toISOString().split('T')[0]
+    
+    // 1. 식사 기록 저장
+    const nutrients = totalNutrients.value
+    const intakeResponse = await fetch(`${API_BASE}/health/intake`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: userId,
+        meal_name: mealName.value,
+        calories: nutrients.calories,
+        carbs: nutrients.carbs,
+        protein: nutrients.protein,
+        fat: nutrients.fat,
+        intake_date: today
+      })
+    })
+    
+    if (!intakeResponse.ok) throw new Error('식사 기록 실패')
+    
+    // 2. 재고 차감
+    for (const item of selectedItems.value) {
+      const inventoryItem = inventoryList.value.find(i => i.inventory_id === item.inventory_id)
+      const newQuantity = inventoryItem.quantity - item.quantity
+      
+      if (newQuantity <= 0) {
+        // 수량이 0 이하면 삭제
+        await fetch(`${API_BASE}/inventory/${item.inventory_id}?user_id=${userId}`, {
+          method: 'DELETE'
+        })
+      } else {
+        // 수량 업데이트
+        await fetch(`${API_BASE}/inventory/${item.inventory_id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: userId,
+            quantity: newQuantity
+          })
+        })
+      }
+    }
+    
+    alert('식사가 기록되었습니다!')
+    closeMealModal()
+    
+    // 데이터 새로고침
+    await Promise.all([
+      loadTodayIntake(),
+      loadRecentMeals()
+    ])
+  } catch (error) {
+    console.error('식사 기록 오류:', error)
+    alert('식사 기록에 실패했습니다.')
+  } finally {
+    savingMeal.value = false
   }
 }
 
@@ -353,7 +509,14 @@ onMounted(() => {
 
       <!-- 1. 오늘의 영양 섭취 -->
       <div class="card nutrition-card">
-        <h3 class="card-title">📊 오늘의 영양 섭취</h3>
+        <div class="card-header">
+          <div class="title-with-badge">
+            <h3 class="card-title">📊 오늘의 영양 섭취</h3>
+            <span class="estimate-badge small">추정치</span>
+          </div>
+          <button class="btn-add-meal" @click="openMealModal">🍽️ 식사 기록</button>
+        </div>
+        
         <div class="nutrition-circle">
           <div class="circle-main">
             <span class="calories-value">{{ todayIntake.calories }}</span>
@@ -413,7 +576,7 @@ onMounted(() => {
               :x1="0" :y1="i * 40" :x2="400" :y2="i * 40" 
               stroke="#f0f0f0" stroke-width="1" />
             
-            <!-- 목표 체중 선 (실제 데이터 범위에 맞춰 계산) -->
+            <!-- 목표 체중 선 -->
             <line 
               :x1="0" 
               :y1="(() => {
@@ -548,6 +711,109 @@ onMounted(() => {
         </form>
       </div>
     </div>
+
+    <!-- 🆕 식사 기록 모달 -->
+    <div v-if="showMealModal" class="modal-overlay" @click="closeMealModal">
+      <div class="modal-content meal-modal" @click.stop>
+        <h3>🍽️ 재고에서 식사 기록</h3>
+        
+        <div class="meal-form">
+          <div class="form-group">
+            <label>식사 이름</label>
+            <input 
+              type="text" 
+              v-model="mealName" 
+              placeholder="예: 아침 식사, 점심 도시락" 
+              required 
+            />
+          </div>
+
+          <div class="inventory-selection">
+            <h4>재고 선택</h4>
+            <div v-if="inventoryList.length === 0" class="no-data">
+              재고가 없습니다
+            </div>
+            <div v-else class="inventory-list">
+              <div 
+                v-for="item in inventoryList" 
+                :key="item.inventory_id"
+                class="inventory-item"
+                :class="{ selected: isSelected(item.inventory_id) }"
+                @click="toggleItem(item)"
+              >
+                <div class="item-info">
+                  <span class="item-name">{{ item.item_name }}</span>
+                  <span class="item-stock">재고: {{ item.quantity }}개</span>
+                </div>
+                <div v-if="isSelected(item.inventory_id)" class="item-quantity" @click.stop>
+                  <label>사용량:</label>
+                  <input 
+                    type="number" 
+                    :value="selectedItems.find(i => i.inventory_id === item.inventory_id)?.quantity"
+                    @input="updateQuantity(item.inventory_id, $event.target.value)"
+                    :max="item.quantity"
+                    min="0.1"
+                    step="0.1"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 선택된 아이템 요약 -->
+          <div v-if="selectedItems.length > 0" class="selected-summary">
+            <h4>선택한 재료 ({{ selectedItems.length }}개)</h4>
+            <div class="summary-items">
+              <div v-for="item in selectedItems" :key="item.inventory_id" class="summary-item">
+                <span>{{ item.item_name }}</span>
+                <span>{{ item.quantity }}개</span>
+              </div>
+            </div>
+            
+            <div class="total-nutrients">
+              <h4>총 영양소 <span class="estimate-badge">추정치</span></h4>
+              
+              <!-- 영양 정보가 없을 때 안내 -->
+              <div v-if="totalNutrients.calories === 0 && totalNutrients.carbs === 0" class="nutrition-notice">
+                <span class="notice-icon">ℹ️</span>
+                <p>영양 정보가 아직 등록되지 않은 재료입니다.<br>식사는 정상적으로 기록됩니다.</p>
+              </div>
+              
+              <div class="nutrient-grid">
+                <div class="nutrient">
+                  <span class="label">칼로리</span>
+                  <span class="value">{{ totalNutrients.calories.toFixed(1) }} kcal</span>
+                </div>
+                <div class="nutrient">
+                  <span class="label">탄수화물</span>
+                  <span class="value">{{ totalNutrients.carbs.toFixed(1) }} g</span>
+                </div>
+                <div class="nutrient">
+                  <span class="label">단백질</span>
+                  <span class="value">{{ totalNutrients.protein.toFixed(1) }} g</span>
+                </div>
+                <div class="nutrient">
+                  <span class="label">지방</span>
+                  <span class="value">{{ totalNutrients.fat.toFixed(1) }} g</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-buttons">
+            <button type="button" @click="closeMealModal" class="btn-cancel">취소</button>
+            <button 
+              type="button" 
+              @click="saveMeal" 
+              :disabled="savingMeal || selectedItems.length === 0"
+              class="btn-save"
+            >
+              {{ savingMeal ? '저장 중...' : '기록하기' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -657,11 +923,47 @@ onMounted(() => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
+/* 🆕 카드 헤더 (식사 기록 버튼 포함) */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.title-with-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .card-title {
-  margin: 0 0 16px 0;
+  margin: 0;
   font-size: 16px;
   font-weight: 700;
   color: #333;
+}
+
+.estimate-badge.small {
+  font-size: 10px;
+  padding: 2px 6px;
+}
+
+.btn-add-meal {
+  padding: 8px 16px;
+  background: #FF6600;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-add-meal:hover {
+  background: #e55a00;
+  transform: translateY(-1px);
 }
 
 /* 1. 오늘의 영양 섭취 */
@@ -883,7 +1185,7 @@ onMounted(() => {
 }
 
 /* 폼 스타일 */
-.health-form {
+.health-form, .meal-form {
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -999,6 +1301,10 @@ onMounted(() => {
   color: #333;
 }
 
+.modal-content.meal-modal {
+  max-width: 600px;
+}
+
 .modal-buttons {
   display: flex;
   gap: 10px;
@@ -1021,16 +1327,198 @@ onMounted(() => {
   background: #f5f5f5;
 }
 
+/* 🆕 식사 기록 모달 전용 스타일 */
+.inventory-selection {
+  margin-top: 20px;
+}
+
+.inventory-selection h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.inventory-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.inventory-item {
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.inventory-item:hover {
+  border-color: #FF6600;
+  background: #fff5f0;
+}
+
+.inventory-item.selected {
+  border-color: #FF6600;
+  background: #fff5f0;
+}
+
+.item-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.item-name {
+  font-weight: 600;
+  color: #333;
+}
+
+.item-stock {
+  font-size: 12px;
+  color: #666;
+}
+
+.item-quantity {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.item-quantity label {
+  font-size: 13px;
+  color: #666;
+}
+
+.item-quantity input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* 선택된 아이템 요약 */
+.selected-summary {
+  margin-top: 20px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.selected-summary h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.summary-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #666;
+}
+
+.total-nutrients {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 2px solid #e0e0e0;
+}
+
+.total-nutrients h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.estimate-badge {
+  font-size: 11px;
+  font-weight: 500;
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.nutrient-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.nutrient {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nutrient .label {
+  font-size: 12px;
+  color: #666;
+}
+
+.nutrient .value {
+  font-size: 15px;
+  font-weight: 700;
+  color: #FF6600;
+}
+
+/* 영양 정보 안내 */
+.nutrition-notice {
+  background: #fff9e6;
+  border: 1px solid #ffd54f;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.notice-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.nutrition-notice p {
+  margin: 0;
+  font-size: 13px;
+  color: #856404;
+  line-height: 1.5;
+}
+
 /* 스크롤바 */
-.health-container::-webkit-scrollbar {
+.health-container::-webkit-scrollbar,
+.inventory-list::-webkit-scrollbar,
+.modal-content::-webkit-scrollbar {
   width: 8px;
 }
 
-.health-container::-webkit-scrollbar-track {
+.health-container::-webkit-scrollbar-track,
+.inventory-list::-webkit-scrollbar-track,
+.modal-content::-webkit-scrollbar-track {
   background: #e5e5e5;
 }
 
-.health-container::-webkit-scrollbar-thumb {
+.health-container::-webkit-scrollbar-thumb,
+.inventory-list::-webkit-scrollbar-thumb,
+.modal-content::-webkit-scrollbar-thumb {
   background: #FF6600;
   border-radius: 4px;
 }
@@ -1048,5 +1536,8 @@ onMounted(() => {
     grid-template-columns: 1fr;
     gap: 12px;
   }
+  
+  .nutrient-grid {
+    grid-template-columns: 1fr;
+  }
 }
-</style>
