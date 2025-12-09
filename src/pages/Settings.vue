@@ -321,12 +321,12 @@ async function saveMeal() {
       
       if (newQuantity <= 0) {
         // 수량이 0 이하면 삭제
-        await fetch(`${API_BASE}/inventory/${item.inventory_id}?user_id=${userId}`, {
+        await fetch(`${API_BASE}/inventories/${item.inventory_id}?user_id=${userId}`, {
           method: 'DELETE'
         })
       } else {
         // 수량 업데이트
-        await fetch(`${API_BASE}/inventory/${item.inventory_id}`, {
+        await fetch(`${API_BASE}/inventories/${item.inventory_id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

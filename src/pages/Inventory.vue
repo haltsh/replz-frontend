@@ -40,6 +40,18 @@ function showNotification(message: string, type: 'success' | 'error' = 'success'
   }, 3000)
 }
 
+// ✅ 중복 제거된 품목 목록
+const uniqueItems = computed(() => {
+  const seen = new Set<string>()
+  return items.value.filter(item => {
+    if (seen.has(item.item_name)) {
+      return false
+    }
+    seen.add(item.item_name)
+    return true
+  })
+})
+
 async function loadItems() {
   try {
     const response = await fetch(`${API_BASE}/items`)
@@ -87,6 +99,22 @@ async function addInventory() {
     return
   }
   
+  // ✅ user_id 동적으로 가져오기
+  const userId = localStorage.getItem('user_id') || '1'
+  
+  // ✅ 프론트엔드 중복 체크
+  const existingItem = rows.value.find(
+    r => r.item_id === newInventory.value.item_id && 
+         r.expiration_date === newInventory.value.expiration_date
+  )
+  
+  if (existingItem) {
+    const totalQty = existingItem.quantity + newInventory.value.quantity
+    const confirmMessage = `이미 같은 품목과 유통기한의 재고가 있습니다.\n수량을 합산하시겠습니까?\n\n현재: ${existingItem.quantity}개\n추가: ${newInventory.value.quantity}개\n합계: ${totalQty}개`
+    
+    if (!confirm(confirmMessage)) return
+  }
+  
   isAdding.value = true
   
   try {
@@ -94,7 +122,7 @@ async function addInventory() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        user_id: 1,
+        user_id: parseInt(userId),
         item_id: newInventory.value.item_id,
         quantity: newInventory.value.quantity,
         expiration_date: newInventory.value.expiration_date
@@ -103,15 +131,23 @@ async function addInventory() {
     
     if (!response.ok) throw new Error('추가 실패')
     
+    const result = await response.json()
+    
     await load()
     
+    // 폼 초기화
     newInventory.value = {
-      item_id: items.value[0]?.item_id || 0,
+      item_id: uniqueItems.value[0]?.item_id || 0,
       quantity: 1,
       expiration_date: ''
     }
     
-    showNotification('재고가 추가되었습니다!', 'success')
+    // ✅ 메시지 개선
+    if (result.updated) {
+      showNotification('재고 수량이 업데이트되었습니다!', 'success')
+    } else {
+      showNotification('재고가 추가되었습니다!', 'success')
+    }
   } catch (error) {
     console.error('추가 실패:', error)
     showNotification('추가에 실패했습니다.', 'error')
@@ -172,8 +208,9 @@ function getDdayStyle(dday: number | null | undefined) {
                     class="form-input"
                   >
                     <option value="0" disabled>품목 선택</option>
+                    <!-- ✅ items → uniqueItems -->
                     <option 
-                      v-for="item in items" 
+                      v-for="item in uniqueItems" 
                       :key="item.item_id" 
                       :value="item.item_id"
                     >
@@ -260,6 +297,8 @@ function getDdayStyle(dday: number | null | undefined) {
     </div>
   </div>
 </template>
+
+<!-- style은 동일 -->
 
 <style scoped>
 * {
