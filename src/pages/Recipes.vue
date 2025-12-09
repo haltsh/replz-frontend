@@ -106,11 +106,13 @@ async function searchRecipes() {
   recipes.value = []
 
   try {
+    const selectedArray = Array.from(selectedIngredients.value)
+    
     const response = await fetch(`${EXPRESS_URL}/recipes/search`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        ingredients: Array.from(selectedIngredients.value),
+        ingredients: selectedArray,
         limit: 5,
         userId: 1
       })
@@ -126,7 +128,32 @@ async function searchRecipes() {
       throw new Error(data.error)
     }
 
-    recipes.value = data.recipes || []
+    // 선택한 재료 기준으로 재계산
+    const processedRecipes = (data.recipes || []).map(recipe => {
+      const allIngredients = recipe.ingredients || []
+      
+      // 선택한 재료와 매칭
+      const have = allIngredients.filter(ing => 
+        selectedArray.some(selected => 
+          ing.includes(selected) || selected.includes(ing)
+        )
+      )
+      
+      // 부족한 재료
+      const need = allIngredients.filter(ing => 
+        !selectedArray.some(selected => 
+          ing.includes(selected) || selected.includes(ing)
+        )
+      )
+      
+      return {
+        ...recipe,
+        have,
+        need
+      }
+    })
+
+    recipes.value = processedRecipes
     searched.value = true
   } catch (e: any) {
     console.error('레시피 검색 실패:', e)
