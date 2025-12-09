@@ -2,6 +2,7 @@
 import { reactive, ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { API_BASE } from '@/config/api'
+import { getInventory } from '@/api/index.ts'
 
 const router = useRouter()
 
@@ -27,7 +28,7 @@ const saving = ref(false)
 const userInfo = ref(null)
 const showEditModal = ref(false)
 
-// 🆕 식사 기록 관련
+// 식사 기록 관련
 const showMealModal = ref(false)
 const inventoryList = ref([])
 const selectedItems = ref([]) // [{ inventory_id, item_id, item_name, quantity, calories, carbs, protein, fat }]
@@ -123,6 +124,17 @@ async function loadHealthProfile() {
     console.error('프로필 로드 오류:', error)
   } finally {
     loading.value = false
+  }
+}
+
+// 재고 목록 불러오기
+async function loadInventory() {
+  try {
+    // ✅ API 함수 사용 (userId 자동 처리)
+    inventoryList.value = await getInventory()
+  } catch (error) {
+    console.error('재고 로드 오류:', error)
+    alert('재고를 불러오는데 실패했습니다.')
   }
 }
 
