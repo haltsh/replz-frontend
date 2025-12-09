@@ -108,11 +108,14 @@ async function searchRecipes() {
   try {
     const selectedArray = Array.from(selectedIngredients.value)
     
+    // 전체 재고 목록 (보유한 모든 재료)
+    const allInventoryItems = inventory.value.map(item => item.item_name)
+    
     const response = await fetch(`${EXPRESS_URL}/recipes/search`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        ingredients: selectedArray,
+        ingredients: selectedArray,  // 검색용: 선택한 재료
         limit: 5,
         userId: 1
       })
@@ -128,21 +131,21 @@ async function searchRecipes() {
       throw new Error(data.error)
     }
 
-    // ✅ 타입 명시 추가
+    // 전체 재고 기준으로 재계산
     const processedRecipes = (data.recipes || []).map((recipe: any) => {
       const allIngredients: string[] = recipe.ingredients || []
       
-      // 선택한 재료와 매칭
+      // 보유한 재료 (전체 재고 기준)
       const have = allIngredients.filter((ing: string) => 
-        selectedArray.some(selected => 
-          ing.includes(selected) || selected.includes(ing)
+        allInventoryItems.some(inventoryItem => 
+          ing.includes(inventoryItem) || inventoryItem.includes(ing)
         )
       )
       
       // 부족한 재료
       const need = allIngredients.filter((ing: string) => 
-        !selectedArray.some(selected => 
-          ing.includes(selected) || selected.includes(ing)
+        !allInventoryItems.some(inventoryItem => 
+          ing.includes(inventoryItem) || inventoryItem.includes(ing)
         )
       )
       
@@ -162,7 +165,6 @@ async function searchRecipes() {
     loading.value = false
   }
 }
-
 // 건강 정보 가져오기
 async function fetchHealthInfo(recipeUrl: string) {
   healthLoading.value = true
