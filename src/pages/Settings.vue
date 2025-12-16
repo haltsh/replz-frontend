@@ -17,7 +17,7 @@ const DAILY_STANDARDS = {
 const health = reactive({
   height: '',
   weight: '',
-  age: '',
+  age: '',  
   gender: '',
   targetWeight: ''
 })
@@ -757,7 +757,8 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- 🆕 식사 기록 모달
+    <!-- 🆕 식사 기록 모달 -->
+<template v-if="false">
     <div v-if="showMealModal" class="modal-overlay" @click="closeMealModal">
       <div class="modal-content meal-modal" @click.stop>
         <h3>🍽️ 재고에서 식사 기록</h3>
@@ -804,9 +805,8 @@ onMounted(() => {
               </div>
             </div>
           </div>
-          -->
 
-          <!-- 선택된 아이템 요약
+          <!-- 선택된 아이템 요약 -->
           <div v-if="selectedItems.length > 0" class="selected-summary">
             <h4>선택한 재료 ({{ selectedItems.length }}개)</h4>
             <div class="summary-items">
@@ -818,8 +818,8 @@ onMounted(() => {
             
             <div class="total-nutrients">
               <h4>총 영양소 <span class="estimate-badge">추정치</span></h4>
-            -->  
-              <!-- 영양 정보가 없을 때 안내
+              
+              <!-- 영양 정보가 없을 때 안내 -->
               <div v-if="totalNutrients.calories === 0 && totalNutrients.carbs === 0" class="nutrition-notice">
                 <span class="notice-icon">ℹ️</span>
                 <p>영양 정보가 아직 등록되지 않은 재료입니다.<br>식사는 정상적으로 기록됩니다.</p>
@@ -859,9 +859,9 @@ onMounted(() => {
           </div>
         </div>
       </div>
-      -->
     </div>
-  </div>
+</template>
+    </div>
 </template>
 
 <style scoped>
