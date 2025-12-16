@@ -7,12 +7,12 @@ import { getInventory } from '@/api/index.ts'
 const router = useRouter()
 
 // 권장 섭취량 기준
-const DAILY_STANDARDS = {
+const DAILY_STANDARDS = ref({
   calories: 2000,
   carbs: 300,
   protein: 48,
   fat: 60
-}
+})
 
 const health = reactive({
   height: '',
@@ -43,6 +43,29 @@ const todayIntake = ref({
   fat: 0
 })
 
+async function loadDailyStandardsOnce() {
+  try {
+    const userId = localStorage.getItem('user_id') || 1
+
+    const res = await fetch(
+      `${API_BASE}/users/${userId}`
+    )
+
+    if (!res.ok) return
+
+    const data = await res.json()
+
+    DAILY_STANDARDS.value = {
+      calories: data.calories,
+      carbs: data.carbs,
+      protein: data.protein,
+      fat: data.fat
+    }
+  } catch (e) {
+    console.error('권장 섭취 기준 로드 실패:', e)
+  }
+}
+
 // 몸무게 기록 (2주간)
 const weightRecords = ref([])
 const todayWeight = ref('')
@@ -58,12 +81,40 @@ function calculateStdWeight(heightCm) {
 }
 
 // 섭취율 계산
-const intakePercentages = computed(() => ({
-  calories: Math.round((todayIntake.value.calories / DAILY_STANDARDS.calories) * 100),
-  carbs: Math.round((todayIntake.value.carbs / DAILY_STANDARDS.carbs) * 100),
-  protein: Math.round((todayIntake.value.protein / DAILY_STANDARDS.protein) * 100),
-  fat: Math.round((todayIntake.value.fat / DAILY_STANDARDS.fat) * 100)
-}))
+const intakePercentages = computed(() => {
+  const standards = DAILY_STANDARDS.value
+
+  // 🔒 분모 보호
+  if (
+    !standards ||
+    standards.calories <= 0 ||
+    standards.carbs <= 0 ||
+    standards.protein <= 0 ||
+    standards.fat <= 0
+  ) {
+    return {
+      calories: 0,
+      carbs: 0,
+      protein: 0,
+      fat: 0
+    }
+  }
+
+  return {
+    calories: Math.round(
+      (todayIntake.value.calories / standards.calories) * 100
+    ),
+    carbs: Math.round(
+      (todayIntake.value.carbs / standards.carbs) * 100
+    ),
+    protein: Math.round(
+      (todayIntake.value.protein / standards.protein) * 100
+    ),
+    fat: Math.round(
+      (todayIntake.value.fat / standards.fat) * 100
+    )
+  }
+})
 
 /* 🆕 선택된 아이템 총 영양소 계산
 const totalNutrients = computed(() => {
@@ -392,6 +443,7 @@ async function saveHealthProfile() {
     alert('건강 프로필이 저장되었습니다!')
     showEditModal.value = false
     await loadHealthProfile()
+    await loadDailyStandardsOnce()
   } catch (error) {
     console.error('저장 오류:', error)
     alert('저장에 실패했습니다.')
@@ -444,9 +496,9 @@ async function handleLogout() {
     router.push('/login')
   }
 }
-
-onMounted(() => {
-  loadHealthProfile()
+onMounted(async () => {
+  await loadHealthProfile()
+  await loadDailyStandardsOnce()
 })
 </script>
 
@@ -512,62 +564,13 @@ onMounted(() => {
 
       <!-- 1. 오늘의 영양 섭취 -->
       <div class="card nutrition-card">
-        <div class="card-header">
-          <div class="title-with-badge">
-            <h3 class="card-title">📊 오늘의 영양 섭취</h3>
-            <span class="estimate-badge small">추정치</span>
-          </div>
-          <!--<button class="btn-add-meal" @click="openMealModal">🍽️ 식사 기록</button>-->
-        </div>
-        <!-- ✅ SVG로 진행률 표시하는 원형 차트 -->
-      <div class="nutrition-circle">
-        <svg class="circle-progress" viewBox="0 0 200 200">
-          <!-- 배경 원 -->
-          <circle
-            cx="100"
-            cy="100"
-            r="80"
-            fill="none"
-            stroke="#e0e0e0"
-            stroke-width="12"
-          />
-        
-          <!-- 진행률 원 -->
-          <circle
-            cx="100"
-            cy="100"
-            r="80"
-            fill="none"
-            :stroke="intakePercentages.calories >= 100 ? '#4CAF50' : intakePercentages.calories >= 80 ? '#FFA726' : '#FF5252'"
-            stroke-width="12"
-            stroke-linecap="round"
-            :stroke-dasharray="502.4"
-            :stroke-dashoffset="502.4 - (502.4 * Math.min(intakePercentages.calories, 100) / 100)"
-            transform="rotate(-90 100 100)"
-            class="progress-ring"
-          />
-        
-          <!-- 중앙 텍스트 -->
-          <text x="100" y="90" text-anchor="middle" class="calories-value-svg">
-            {{ todayIntake.calories.toFixed(0) }}
-          </text>
-          <text x="100" y="110" text-anchor="middle" class="calories-label-svg">
-            / {{ DAILY_STANDARDS.calories }}
-          </text>
-          <text x="100" y="125" text-anchor="middle" class="calories-unit-svg">
-            kcal
-          </text>
-        </svg>
-      </div>
-
-        <!-- 
+        <h3 class="card-title">📊 오늘의 영양 섭취</h3>
         <div class="nutrition-circle">
           <div class="circle-main">
             <span class="calories-value">{{ todayIntake.calories }}</span>
             <span class="calories-label">권장칼로리 {{ DAILY_STANDARDS.calories }}kcal</span>
           </div>
         </div>
-        -->
         
         <div class="nutrition-bars">
           <div class="nutrition-item">
@@ -985,7 +988,7 @@ onMounted(() => {
 }
 
 .card-title {
-  margin: 0;
+  margin: 0 0 16px 0;
   font-size: 16px;
   font-weight: 700;
   color: #333;
@@ -1020,31 +1023,16 @@ onMounted(() => {
   margin-bottom: 24px;
 }
 
-.circle-progress {
-  width: 180px;
-  height: 180px;
-}
-
-.progress-ring {
-  transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease;
-}
-
-.calories-value-svg {
-  font-size: 32px;
-  font-weight: 700;
-  fill: #333;
-}
-
-.calories-label-svg {
-  font-size: 14px;
-  font-weight: 500;
-  fill: #666;
-}
-
-.calories-unit-svg {
-  font-size: 12px;
-  font-weight: 500;
-  fill: #999;
+.circle-main {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  border: 12px solid #4CAF50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 
 .calories-value {
@@ -1247,7 +1235,7 @@ onMounted(() => {
 }
 
 /* 폼 스타일 */
-.health-form, .meal-form {
+.health-form {
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -1566,21 +1554,15 @@ onMounted(() => {
 }
 
 /* 스크롤바 */
-.health-container::-webkit-scrollbar,
-.inventory-list::-webkit-scrollbar,
-.modal-content::-webkit-scrollbar {
+.health-container::-webkit-scrollbar {
   width: 8px;
 }
 
-.health-container::-webkit-scrollbar-track,
-.inventory-list::-webkit-scrollbar-track,
-.modal-content::-webkit-scrollbar-track {
+.health-container::-webkit-scrollbar-track {
   background: #e5e5e5;
 }
 
-.health-container::-webkit-scrollbar-thumb,
-.inventory-list::-webkit-scrollbar-thumb,
-.modal-content::-webkit-scrollbar-thumb {
+.health-container::-webkit-scrollbar-thumb {
   background: #FF6600;
   border-radius: 4px;
 }
