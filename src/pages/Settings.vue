@@ -28,13 +28,13 @@ const saving = ref(false)
 const userInfo = ref(null)
 const showEditModal = ref(false)
 
-// 식사 기록 관련
+/* 식사 기록 관련
 const showMealModal = ref(false)
 const inventoryList = ref([])
 const selectedItems = ref([]) // [{ inventory_id, item_id, item_name, quantity, calories, carbs, protein, fat }]
 const mealName = ref('')
 const savingMeal = ref(false)
-
+*/
 // 오늘의 섭취 데이터
 const todayIntake = ref({
   calories: 0,
@@ -65,7 +65,7 @@ const intakePercentages = computed(() => ({
   fat: Math.round((todayIntake.value.fat / DAILY_STANDARDS.fat) * 100)
 }))
 
-// 🆕 선택된 아이템 총 영양소 계산
+/* 🆕 선택된 아이템 총 영양소 계산
 const totalNutrients = computed(() => {
   return selectedItems.value.reduce((acc, item) => ({
     calories: acc.calories + (item.calories * item.quantity),
@@ -74,6 +74,7 @@ const totalNutrients = computed(() => {
     fat: acc.fat + (item.fat * item.quantity)
   }), { calories: 0, carbs: 0, protein: 0, fat: 0 })
 })
+*/
 
 // 몸무게 그래프 데이터
 const weightChartData = computed(() => {
@@ -213,7 +214,7 @@ async function saveTodayWeight() {
     savingWeight.value = false
   }
 }
-
+/*
 // 재고 목록 불러오기
 async function loadInventory() {
   try {
@@ -278,8 +279,8 @@ function updateQuantity(inventoryId, value) {
     item.quantity = newQty
   }
 }
-
-// 🆕 식사 기록 저장
+*/
+/* 🆕 식사 기록 저장
 async function saveMeal() {
   if (selectedItems.value.length === 0) {
     alert('최소 1개 이상의 재료를 선택해주세요.')
@@ -352,6 +353,7 @@ async function saveMeal() {
     savingMeal.value = false
   }
 }
+*/
 
 // 영양 상태 판정
 function getNutrientStatus(actual, standard) {
@@ -515,7 +517,7 @@ onMounted(() => {
             <h3 class="card-title">📊 오늘의 영양 섭취</h3>
             <span class="estimate-badge small">추정치</span>
           </div>
-          <button class="btn-add-meal" @click="openMealModal">🍽️ 식사 기록</button>
+          <!--<button class="btn-add-meal" @click="openMealModal">🍽️ 식사 기록</button>-->
         </div>
         <!-- ✅ SVG로 진행률 표시하는 원형 차트 -->
       <div class="nutrition-circle">
@@ -557,14 +559,16 @@ onMounted(() => {
           </text>
         </svg>
       </div>
-        
+
+        <!-- 
         <div class="nutrition-circle">
           <div class="circle-main">
             <span class="calories-value">{{ todayIntake.calories }}</span>
             <span class="calories-label">권장칼로리 {{ DAILY_STANDARDS.calories }}kcal</span>
           </div>
         </div>
-
+        -->
+        
         <div class="nutrition-bars">
           <div class="nutrition-item">
             <div class="nutrition-header">
@@ -753,7 +757,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- 🆕 식사 기록 모달 -->
+    <!-- 🆕 식사 기록 모달
     <div v-if="showMealModal" class="modal-overlay" @click="closeMealModal">
       <div class="modal-content meal-modal" @click.stop>
         <h3>🍽️ 재고에서 식사 기록</h3>
@@ -800,8 +804,9 @@ onMounted(() => {
               </div>
             </div>
           </div>
+          -->
 
-          <!-- 선택된 아이템 요약 -->
+          <!-- 선택된 아이템 요약
           <div v-if="selectedItems.length > 0" class="selected-summary">
             <h4>선택한 재료 ({{ selectedItems.length }}개)</h4>
             <div class="summary-items">
@@ -813,8 +818,8 @@ onMounted(() => {
             
             <div class="total-nutrients">
               <h4>총 영양소 <span class="estimate-badge">추정치</span></h4>
-              
-              <!-- 영양 정보가 없을 때 안내 -->
+            -->  
+              <!-- 영양 정보가 없을 때 안내
               <div v-if="totalNutrients.calories === 0 && totalNutrients.carbs === 0" class="nutrition-notice">
                 <span class="notice-icon">ℹ️</span>
                 <p>영양 정보가 아직 등록되지 않은 재료입니다.<br>식사는 정상적으로 기록됩니다.</p>
@@ -854,6 +859,7 @@ onMounted(() => {
           </div>
         </div>
       </div>
+      -->
     </div>
   </div>
 </template>
