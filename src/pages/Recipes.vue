@@ -62,7 +62,11 @@ const modalLoading = ref(false)
 const selectedRecipe = ref<RecipeDetail | null>(null)
 const healthInfo = ref<HealthInfo | null>(null)
 const healthLoading = ref(false)
-
+// 먹은 음식 추가 모달
+const showIntakeModal = ref(false)
+const intakeLoading = ref(false)
+const intakeSuccess = ref(false)
+const userId = localStorage.getItem('user_id') || 1
 // 재고 불러오기
 onMounted(async () => {
   try {
@@ -244,7 +248,62 @@ function closeModal() {
   selectedRecipe.value = null
   healthInfo.value = null
 }
+// 먹은 음식 추가 모달 열기
+function openIntakeModal() {
+  if (!healthInfo.value) {
+    alert('영양 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.')
+    return
+  }
+  showIntakeModal.value = true
+  intakeSuccess.value = false
+}
 
+// 먹은 음식 추가 모달 닫기
+function closeIntakeModal() {
+  showIntakeModal.value = false
+  intakeSuccess.value = false
+}
+
+// 먹은 음식 추가
+async function addIntake(portion: number) {
+  if (!selectedRecipe.value || !healthInfo.value) return
+
+  intakeLoading.value = true
+
+  try {
+    const response = await fetch(`${EXPRESS_URL}/intake`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: userId,
+        meal_name: selectedRecipe.value.title,
+        calories: healthInfo.value.총칼로리 * portion,
+        carbs: healthInfo.value.탄수화물 * portion,
+        protein: healthInfo.value.단백질 * portion,
+        fat: healthInfo.value.지방 * portion,
+        intake_date: new Date().toISOString().split('T')[0]
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error('먹은 음식 추가에 실패했습니다.')
+    }
+
+    const data = await response.json()
+
+    if (data.success) {
+      intakeSuccess.value = true
+      setTimeout(() => {
+        closeIntakeModal()
+      }, 1500)
+    }
+  } catch (e: any) {
+    console.error('먹은 음식 추가 실패:', e)
+    alert(e.message || '먹은 음식 추가에 실패했습니다.')
+  } finally {
+    intakeLoading.value = false
+  }
+}
 // 필터링된 레시피
 const filteredRecipes = computed(() => {
   if (!searchQuery.value.trim()) return recipes.value
@@ -664,13 +723,22 @@ function getDdayClass(dday: number | null | undefined) {
 
               <!-- 푸터 버튼 -->
               <footer class="modal-footer-new">
+                <button
+                  class="add-intake-btn"
+                  @click="openIntakeModal"
+                  :disabled="!healthInfo"
+                >
+                  <span class="btn-icon">✨</span>
+                  <span class="btn-text">먹은 음식에 추가하기</span>
+                </button>
+                
                 <a
                   :href="selectedRecipe.url"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="original-link-btn"
                 >
-                  <span class="btn-text">원본 레시피 보러가기</span>
+                  <span class="btn-text">원본 레시피 보기</span>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="7" y1="17" x2="17" y2="7"></line>
                     <polyline points="7,7 17,7 17,17"></polyline>
@@ -678,6 +746,74 @@ function getDdayClass(dday: number | null | undefined) {
                 </a>
               </footer>
             </div>
+          </div>
+        </div>
+      </div>
+      <!-- 먹은 음식 추가 모달 -->
+      <div
+        v-if="showIntakeModal"
+        class="modal-overlay intake-modal-overlay"
+        @click="closeIntakeModal"
+      >
+        <div class="intake-modal" @click.stop>
+          <div v-if="!intakeSuccess" class="intake-content">
+            <h3 class="intake-title">🍽️ 얼마나 드셨나요?</h3>
+            <p class="intake-subtitle">섭취량을 선택해주세요</p>
+            
+            <div class="portion-buttons">
+              <button
+                class="portion-btn"
+                @click="addIntake(0.25)"
+                :disabled="intakeLoading"
+              >
+                <span class="portion-icon">🍴</span>
+                <span class="portion-label">1/4</span>
+                <span class="portion-desc">조금</span>
+              </button>
+
+              <button
+                class="portion-btn"
+                @click="addIntake(0.33)"
+                :disabled="intakeLoading"
+              >
+                <span class="portion-icon">🥄</span>
+                <span class="portion-label">1/3</span>
+                <span class="portion-desc">적당히</span>
+              </button>
+
+              <button
+                class="portion-btn"
+                @click="addIntake(0.5)"
+                :disabled="intakeLoading"
+              >
+                <span class="portion-icon">🥗</span>
+                <span class="portion-label">1/2</span>
+                <span class="portion-desc">반</span>
+              </button>
+
+              <button
+                class="portion-btn"
+                @click="addIntake(1)"
+                :disabled="intakeLoading"
+              >
+                <span class="portion-icon">🍽️</span>
+                <span class="portion-label">전부</span>
+                <span class="portion-desc">완전</span>
+              </button>
+            </div>
+
+            <button
+              class="cancel-btn"
+              @click="closeIntakeModal"
+              :disabled="intakeLoading"
+            >
+              취소
+            </button>
+          </div>
+
+          <div v-else class="success-content">
+            <div class="success-icon">✅</div>
+            <p class="success-message">먹은 음식에 추가되었습니다!</p>
           </div>
         </div>
       </div>
@@ -1513,5 +1649,195 @@ function getDdayClass(dday: number | null | undefined) {
   to {
     transform: rotate(360deg);
   }
+}
+/* 먹은 음식 추가 버튼 */
+.modal-footer-new {
+  display: flex;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.add-intake-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.add-intake-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+}
+
+.add-intake-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-icon {
+  font-size: 20px;
+}
+
+.original-link-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 24px;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  color: #334155;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.original-link-btn:hover {
+  border-color: #667eea;
+  color: #667eea;
+  transform: translateY(-2px);
+}
+
+/* 먹은 음식 추가 모달 */
+.intake-modal-overlay {
+  z-index: 7000;
+}
+
+.intake-modal {
+  background: white;
+  border-radius: 24px;
+  padding: 32px;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.intake-content {
+  text-align: center;
+}
+
+.intake-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+.intake-subtitle {
+  font-size: 16px;
+  color: #64748b;
+  margin-bottom: 32px;
+}
+
+.portion-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.portion-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 16px;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.portion-btn:hover:not(:disabled) {
+  border-color: #667eea;
+  background: #f8f9ff;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.15);
+}
+
+.portion-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.portion-icon {
+  font-size: 36px;
+}
+
+.portion-label {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.portion-desc {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.cancel-btn {
+  width: 100%;
+  padding: 14px;
+  background: #f1f5f9;
+  border: none;
+  border-radius: 12px;
+  color: #64748b;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-btn:hover:not(:disabled) {
+  background: #e2e8f0;
+}
+
+.success-content {
+  text-align: center;
+  padding: 20px;
+}
+
+.success-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  animation: bounce 0.6s ease;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+.success-message {
+  font-size: 20px;
+  font-weight: 600;
+  color: #10b981;
 }
 </style>
