@@ -566,10 +566,43 @@ onMounted(async () => {
       <div class="card nutrition-card">
         <h3 class="card-title">📊 오늘의 영양 섭취</h3>
         <div class="nutrition-circle">
-          <div class="circle-main">
-            <span class="calories-value">{{ todayIntake.calories }}</span>
-            <span class="calories-label">권장칼로리 {{ DAILY_STANDARDS.calories }}kcal</span>
-          </div>
+          <svg class="circle-progress" viewBox="0 0 200 200">
+            <!-- 배경 원 -->
+            <circle
+              cx="100"
+              cy="100"
+              r="80"
+              fill="none"
+              stroke="#e0e0e0"
+              stroke-width="12"
+            />
+          
+            <!-- 진행률 원 -->
+            <circle
+              cx="100"
+              cy="100"
+              r="80"
+              fill="none"
+              :stroke="intakePercentages.calories >= 100 ? '#4CAF50' : intakePercentages.calories >= 80 ? '#FFA726' : '#FF5252'"
+              stroke-width="12"
+              stroke-linecap="round"
+              :stroke-dasharray="502.4"
+              :stroke-dashoffset="502.4 - (502.4 * Math.min(intakePercentages.calories, 100) / 100)"
+              transform="rotate(-90 100 100)"
+              class="progress-ring"
+            />
+          
+            <!-- 중앙 텍스트 -->
+            <text x="100" y="90" text-anchor="middle" class="calories-value-svg">
+              {{ todayIntake.calories.toFixed(0) }}
+            </text>
+            <text x="100" y="110" text-anchor="middle" class="calories-label-svg">
+              / {{ DAILY_STANDARDS.calories }}
+            </text>
+            <text x="100" y="125" text-anchor="middle" class="calories-unit-svg">
+              kcal
+            </text>
+          </svg>
         </div>
         
         <div class="nutrition-bars">
@@ -1017,34 +1050,39 @@ onMounted(async () => {
 }
 
 /* 1. 오늘의 영양 섭취 */
+/* 1. 오늘의 영양 섭취 */
 .nutrition-circle {
   display: flex;
   justify-content: center;
   margin-bottom: 24px;
 }
 
-.circle-main {
-  width: 160px;
-  height: 160px;
-  border-radius: 50%;
-  border: 12px solid #4CAF50;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
+/* SVG 원형 차트 */
+.circle-progress {
+  width: 180px;
+  height: 180px;
 }
 
-.calories-value {
+.progress-ring {
+  transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease;
+}
+
+.calories-value-svg {
   font-size: 32px;
   font-weight: 700;
-  color: #333;
+  fill: #333;
 }
 
-.calories-label {
-  font-size: 11px;
-  color: #666;
-  text-align: center;
+.calories-label-svg {
+  font-size: 14px;
+  font-weight: 500;
+  fill: #666;
+}
+
+.calories-unit-svg {
+  font-size: 12px;
+  font-weight: 500;
+  fill: #999;
 }
 
 .nutrition-bars {
