@@ -67,6 +67,11 @@ const showIntakeModal = ref(false)
 const intakeLoading = ref(false)
 const intakeSuccess = ref(false)
 const userId = localStorage.getItem('user_id') || 1
+
+// 요리 완료 상태 관리
+const isCooked = ref(false)
+const cooking = ref(false)
+
 // 재고 불러오기
 onMounted(async () => {
   try {
@@ -247,7 +252,64 @@ function closeModal() {
   showModal.value = false
   selectedRecipe.value = null
   healthInfo.value = null
+  isCooked.value = false
 }
+
+// 요리 시작 (재고 차감)
+async function startCooking() {
+  if (!selectedRecipe.value) return
+  
+  const confirmed = confirm(
+    `${selectedRecipe.value.title}을(를) 요리하시겠습니까?\n\n필요한 재료가 재고에서 차감됩니다.`
+  )
+  
+  if (!confirmed) return
+  
+  cooking.value = true
+  
+  try {
+    const userId = localStorage.getItem('user_id') || '1'
+    
+    // 레시피에 사용된 재료만큼 재고 차감
+    for (const ingredient of selectedRecipe.value.ingredients) {
+      const inventoryItem = inventory.value.find(item => 
+        ingredient.includes(item.item_name) || item.item_name.includes(ingredient)
+      )
+      
+      if (inventoryItem) {
+        // 1인분 기준 1개씩 차감
+        const newQuantity = inventoryItem.quantity - 1
+        
+        if (newQuantity <= 0) {
+          await fetch(`${EXPRESS_URL}/inventories/${inventoryItem.inventory_id}?user_id=${userId}`, {
+            method: 'DELETE'
+          })
+        } else {
+          await fetch(`${EXPRESS_URL}/inventories/${inventoryItem.inventory_id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id: parseInt(userId),
+              quantity: newQuantity
+            })
+          })
+        }
+      }
+    }
+    
+    // 재고 새로고침
+    inventory.value = await listInventory()
+    isCooked.value = true
+    
+    alert('요리가 완성되었습니다! 🎉')
+  } catch (e) {
+    console.error('요리 중 오류:', e)
+    alert('재료 처리 중 오류가 발생했습니다.')
+  } finally {
+    cooking.value = false
+  }
+}
+
 // 먹은 음식 추가 모달 열기
 function openIntakeModal() {
   if (!healthInfo.value) {
@@ -264,24 +326,28 @@ function closeIntakeModal() {
   intakeSuccess.value = false
 }
 
-// 먹은 음식 추가
+// 먹은 음식 추가 (영양 정보만 기록)
 async function addIntake(portion: number) {
   if (!selectedRecipe.value || !healthInfo.value) return
 
   intakeLoading.value = true
 
   try {
+    const userId = localStorage.getItem('user_id') || '1'
+    const today = new Date().toISOString().split('T')[0]
+    
+    // 영양 정보만 기록 (재고 차감 없음)
     const response = await fetch(`${EXPRESS_URL}/intake`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        user_id: userId,
+        user_id: parseInt(userId),
         meal_name: selectedRecipe.value.title,
         calories: healthInfo.value.총칼로리 * portion,
         carbs: healthInfo.value.탄수화물 * portion,
         protein: healthInfo.value.단백질 * portion,
         fat: healthInfo.value.지방 * portion,
-        intake_date: new Date().toISOString().split('T')[0]
+        intake_date: today
       })
     })
 
@@ -289,14 +355,10 @@ async function addIntake(portion: number) {
       throw new Error('먹은 음식 추가에 실패했습니다.')
     }
 
-    const data = await response.json()
-
-    if (data.success) {
-      intakeSuccess.value = true
-      setTimeout(() => {
-        closeIntakeModal()
-      }, 1500)
-    }
+    intakeSuccess.value = true
+    setTimeout(() => {
+      closeIntakeModal()
+    }, 1500)
   } catch (e: any) {
     console.error('먹은 음식 추가 실패:', e)
     alert(e.message || '먹은 음식 추가에 실패했습니다.')
@@ -723,10 +785,26 @@ function getDdayClass(dday: number | null | undefined) {
 
               <!-- 푸터 버튼 -->
               <footer class="modal-footer-new">
+                <!-- 🆕 요리 시작 버튼 추가 -->
+                <button
+                  v-if="!isCooked"
+                  class="cook-start-btn"
+                  @click="startCooking"
+                  :disabled="cooking"
+                >
+                  <span class="btn-icon">🍳</span>
+                  <span class="btn-text">{{ cooking ? '요리 중...' : '요리 시작' }}</span>
+                </button>
+                
+                <!-- 🆕 요리 완료 표시 추가 -->
+                <div v-else class="cooked-badge">
+                  <span class="badge-icon">✅</span>
+                  <span class="badge-text">요리 완료!</span>
+                </div>
                 <button
                   class="add-intake-btn"
                   @click="openIntakeModal"
-                  :disabled="!healthInfo"
+                  :disabled="!healthInfo || !isCooked"
                 >
                   <span class="btn-icon">✨</span>
                   <span class="btn-text">먹은 음식에 추가하기</span>
