@@ -593,14 +593,14 @@ onMounted(async () => {
             />
           
             <!-- 중앙 텍스트 -->
-            <text x="100" y="90" text-anchor="middle" class="calories-value-svg">
+            <text x="100" y="85" text-anchor="middle" class="calories-value-svg">
               {{ todayIntake.calories.toFixed(0) }}
             </text>
-            <text x="100" y="110" text-anchor="middle" class="calories-label-svg">
-              / {{ DAILY_STANDARDS.calories }}
+            <text x="100" y="105" text-anchor="middle" class="calories-label-svg">
+              / {{ DAILY_STANDARDS.calories }} kcal
             </text>
-            <text x="100" y="125" text-anchor="middle" class="calories-unit-svg">
-              kcal
+            <text x="100" y="120" text-anchor="middle" class="calories-unit-svg">
+              일일 권장 칼로리
             </text>
           </svg>
         </div>
