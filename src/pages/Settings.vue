@@ -48,7 +48,7 @@ async function loadDailyStandardsOnce() {
     const userId = localStorage.getItem('user_id') || 1
 
     const res = await fetch(
-      `${API_BASE}/users/${userId}`
+      `${API_BASE}/health/standards/${userId}`
     )
 
     if (!res.ok) return
