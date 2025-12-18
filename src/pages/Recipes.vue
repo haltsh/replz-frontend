@@ -126,7 +126,7 @@ async function searchRecipes() {
       body: JSON.stringify({
         ingredients: selectedArray,  // 검색용: 선택한 재료
         limit: 5,
-        userId: 1
+        userId: parseInt(localStorage.getItem('user_id') || '1')
       })
     })
 
