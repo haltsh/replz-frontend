@@ -597,7 +597,7 @@ html, body {
   transform: scale(1.1);
 }
 
-/* 스크롤바 스타일 */
+/* 스크롤바 스타일. */
 .inventory-list::-webkit-scrollbar {
   width: 8px;
 }
