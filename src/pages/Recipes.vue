@@ -828,7 +828,7 @@ function getDdayClass(dday: number | null | undefined) {
               <!-- 푸터 버튼 -->
               <footer class="modal-footer-new">
                 <button
-                  class="add-intake-btn full-width"
+                  class="add-intake-btn"
                   @click="openIntakeModal"
                   :disabled="!healthInfo"
                 >
