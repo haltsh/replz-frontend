@@ -301,6 +301,9 @@ async function addIntake(portion: number) {
     if (!userIdValue) return
     const today = new Date().toISOString().split('T')[0]
     
+    // 🆕 남은 음식을 먹는 경우인지 확인
+    const isLeftover = !!selectedRecipe.value._cookedMealId
+    
     // 먹은 음식 기록
     const response = await fetch(`${EXPRESS_URL}/intake`, {
       method: 'POST',
@@ -321,10 +324,12 @@ async function addIntake(portion: number) {
     }
 
     // 🆕 기존 남은 음식을 먹은 경우
-    if (selectedRecipe.value._cookedMealId && selectedRecipe.value._remainingPortions) {
-      const newRemaining = selectedRecipe.value._remainingPortions * (1 - portion)
+    if (isLeftover && selectedRecipe.value._remainingPortions) {
+      const currentRemaining = selectedRecipe.value._remainingPortions
+      const actualEaten = currentRemaining * portion  // 실제로 먹은 양
+      const newRemaining = currentRemaining - actualEaten  // 남은 양
       
-      if (newRemaining <= 0.01) {  // 거의 다 먹었으면
+      if (newRemaining <= 0.01) {
         // 다 먹었으면 삭제
         await fetch(`${EXPRESS_URL}/cooked-meals/${selectedRecipe.value._cookedMealId}`, {
           method: 'DELETE'
