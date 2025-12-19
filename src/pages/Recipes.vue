@@ -400,7 +400,7 @@ async function eatLeftover(meal: CookedMeal) {
   showIntakeModal.value = true
   intakeSuccess.value = false
   
-  // 현재 선택된 레시피를 임시로 저장
+  // 현재 선택된 레시피를 임시로 저장.
   selectedRecipe.value = {
     title: meal.recipe_title,
     url: meal.recipe_url,
