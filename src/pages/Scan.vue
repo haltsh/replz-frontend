@@ -449,8 +449,8 @@ function onDaysChange(item: ItemRow) {
 
 .col-name { width: 25%; min-width: 150px; }
 .col-category { width: 15%; min-width: 100px; }
-.col-unit { width: 12%; min-width: 90px; }
-.col-quantity { width: 10%; min-width: 70px; }
+.col-unit { width: 12%; min-width: 100px; }
+.col-quantity { width: 10%; min-width: 100px; }
 .col-days { width: 15%; min-width: 100px; }
 .col-date { width: 25%; min-width: 130px; }
 .col-delete { width: 10%; min-width: 70px; text-align: center; }
