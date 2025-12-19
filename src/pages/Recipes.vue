@@ -299,7 +299,7 @@ async function addIntake(portion: number) {
   try {
     const userIdValue = userId.value
     if (!userIdValue) return
-    const today = new Date().toISOString().split('T')[0]
+    const today = new Date().toISOString()
     
     // 🆕 남은 음식을 먹는 경우인지 확인
     const isLeftover = !!selectedRecipe.value._cookedMealId
