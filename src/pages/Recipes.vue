@@ -327,21 +327,31 @@ async function addIntake(portion: number) {
     if (isLeftover && selectedRecipe.value._remainingPortions) {
       const currentRemaining = selectedRecipe.value._remainingPortions
       const newRemaining = currentRemaining * (1 - portion)
-          
+      
+      console.log('🔍 디버깅:', {
+        isLeftover,
+        _cookedMealId: selectedRecipe.value._cookedMealId,
+        currentRemaining,
+        portion,
+        newRemaining,
+        willDelete: newRemaining <= 0.01
+      })
+
       if (newRemaining <= 0.01) {
-        // 다 먹었으면 삭제
+        console.log('❌ 삭제 요청')
         await fetch(`${EXPRESS_URL}/cooked-meals/${selectedRecipe.value._cookedMealId}`, {
           method: 'DELETE'
         })
       } else {
-        // 남은 양 업데이트
-        await fetch(`${EXPRESS_URL}/cooked-meals/${selectedRecipe.value._cookedMealId}`, {
+        console.log('✏️ 업데이트 요청:', newRemaining)
+        const response = await fetch(`${EXPRESS_URL}/cooked-meals/${selectedRecipe.value._cookedMealId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             remaining_portions: newRemaining
           })
         })
+        console.log('📥 응답:', response.ok, await response.json())
       }
       
       await loadCookedMeals()
