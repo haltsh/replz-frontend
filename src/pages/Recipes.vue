@@ -40,6 +40,21 @@ type HealthInfo = {
   나트륨: number
 }
 
+type CookedMeal = {
+  cooked_meal_id: number
+  recipe_title: string
+  recipe_url: string
+  remaining_portions: number
+  cooked_date: string
+  calories_per_portion: number
+  carbs_per_portion: number
+  protein_per_portion: number
+  fat_per_portion: number
+}
+
+const cookedMeals = ref<CookedMeal[]>([])
+
+
 // 재고 목록
 const inventory = ref<InventoryItem[]>([])
 const selectedIngredients = ref<Set<string>>(new Set())
@@ -67,10 +82,6 @@ const showIntakeModal = ref(false)
 const intakeLoading = ref(false)
 const intakeSuccess = ref(false)
 
-// 요리 완료 상태 관리
-const isCooked = ref(false)
-const cooking = ref(false)
-
 const userId = computed(() => {
   const id = localStorage.getItem('user_id')
   return id ? parseInt(id) : null
@@ -81,6 +92,7 @@ const userId = computed(() => {
 onMounted(async () => {
   try {
     inventory.value = await listInventory()
+    await loadCookedMeals()
   } catch (e) {
     console.error('재고 로드 실패:', e)
     error.value = '재고를 불러오는데 실패했습니다.'
@@ -257,64 +269,8 @@ function closeModal() {
   showModal.value = false
   selectedRecipe.value = null
   healthInfo.value = null
-  isCooked.value = false
 }
 
-// 요리 시작 (재고 차감)
-async function startCooking() {
-  if (!selectedRecipe.value) return
-  
-  const confirmed = confirm(
-    `${selectedRecipe.value.title}을(를) 요리하시겠습니까?\n\n필요한 재료가 재고에서 차감됩니다.`
-  )
-  
-  if (!confirmed) return
-  
-  cooking.value = true
-  
-  try {
-    const userIdValue = userId.value
-    if (!userIdValue) return
-    
-    // 레시피에 사용된 재료만큼 재고 차감
-    for (const ingredient of selectedRecipe.value.ingredients) {
-      const inventoryItem = inventory.value.find(item => 
-        ingredient.includes(item.item_name) || item.item_name.includes(ingredient)
-      )
-      
-      if (inventoryItem) {
-        // 1인분 기준 1개씩 차감
-        const newQuantity = inventoryItem.quantity - 1
-        
-        if (newQuantity <= 0) {
-          await fetch(`${EXPRESS_URL}/inventories/${inventoryItem.inventory_id}?user_id=${userIdValue}`, {
-            method: 'DELETE'
-          })
-        } else {
-          await fetch(`${EXPRESS_URL}/inventories/${inventoryItem.inventory_id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              user_id: userIdValue,
-              quantity: newQuantity
-            })
-          })
-        }
-      }
-    }
-    
-    // 재고 새로고침
-    inventory.value = await listInventory()
-    isCooked.value = true
-    
-    alert('요리가 완성되었습니다! 🎉')
-  } catch (e) {
-    console.error('요리 중 오류:', e)
-    alert('재료 처리 중 오류가 발생했습니다.')
-  } finally {
-    cooking.value = false
-  }
-}
 
 // 먹은 음식 추가 모달 열기
 function openIntakeModal() {
@@ -343,7 +299,7 @@ async function addIntake(portion: number) {
     if (!userIdValue) return
     const today = new Date().toISOString().split('T')[0]
     
-    // 영양 정보만 기록 (재고 차감 없음)
+    // 먹은 음식 기록
     const response = await fetch(`${EXPRESS_URL}/intake`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -362,6 +318,31 @@ async function addIntake(portion: number) {
       throw new Error('먹은 음식 추가에 실패했습니다.')
     }
 
+    // 🆕 1인분 전체를 먹지 않았다면 cooked_meals에 저장
+    if (portion < 1) {
+      const remaining = 1 - portion
+      
+      await fetch(`${EXPRESS_URL}/cooked-meals`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userIdValue,
+          recipe_title: selectedRecipe.value.title,
+          recipe_url: selectedRecipe.value.url,
+          total_portions: 1,
+          remaining_portions: remaining,
+          cooked_date: today,
+          calories_per_portion: healthInfo.value.총칼로리,
+          carbs_per_portion: healthInfo.value.탄수화물,
+          protein_per_portion: healthInfo.value.단백질,
+          fat_per_portion: healthInfo.value.지방
+        })
+      })
+      
+      // 남은 음식 목록 새로고침
+      await loadCookedMeals()
+    }
+
     intakeSuccess.value = true
     setTimeout(() => {
       closeIntakeModal()
@@ -373,6 +354,65 @@ async function addIntake(portion: number) {
     intakeLoading.value = false
   }
 }
+// 남은 음식 불러오기
+async function loadCookedMeals() {
+  try {
+    const userIdValue = userId.value
+    if (!userIdValue) return
+    
+    const response = await fetch(`${EXPRESS_URL}/cooked-meals/${userIdValue}`)
+    
+    if (response.ok) {
+      const data = await response.json()
+      cookedMeals.value = data
+    }
+  } catch (e) {
+    console.error('남은 음식 로드 실패:', e)
+  }
+}
+
+// 남은 음식 섭취
+async function eatLeftover(meal: CookedMeal) {
+  showIntakeModal.value = true
+  intakeSuccess.value = false
+  
+  // 현재 선택된 레시피를 임시로 저장
+  selectedRecipe.value = {
+    title: meal.recipe_title,
+    url: meal.recipe_url,
+    image: null,
+    ingredients: [],
+    steps: []
+  }
+  
+  // 건강 정보를 1인분 기준으로 설정
+  healthInfo.value = {
+    총칼로리: meal.calories_per_portion,
+    탄수화물: meal.carbs_per_portion,
+    당류: 0,
+    지방: meal.fat_per_portion,
+    단백질: meal.protein_per_portion,
+    나트륨: 0
+  }
+}
+
+async function deleteCookedMeal(mealId: number) {
+  if (!confirm('이 음식을 삭제하시겠습니까?')) return
+  
+  try {
+    const response = await fetch(`${EXPRESS_URL}/cooked-meals/${mealId}`, {
+      method: 'DELETE'
+    })
+    
+    if (response.ok) {
+      await loadCookedMeals()
+    }
+  } catch (e) {
+    console.error('삭제 실패:', e)
+    alert('삭제에 실패했습니다.')
+  }
+}
+
 // 필터링된 레시피
 const filteredRecipes = computed(() => {
   if (!searchQuery.value.trim()) return recipes.value
@@ -479,7 +519,6 @@ function getDdayClass(dday: number | null | undefined) {
           </button>
         </div>
       </section>
-
       <!-- 로딩 상태 -->
       <div v-if="loading" class="loading-state card">
         <div class="spinner"></div>
@@ -593,11 +632,7 @@ function getDdayClass(dday: number | null | undefined) {
 
   <!-- 레시피 상세보기 모달 -->
     <Teleport to="body">
-      <div
-        v-if="showModal"
-        class="modal-overlay"
-        @click="closeModal"
-      >
+      <div v-if="showModal" class="modal-overlay" @click="closeModal">
         <div class="modal-content" @click.stop>
           <div
             v-if="modalLoading"
@@ -792,26 +827,10 @@ function getDdayClass(dday: number | null | undefined) {
 
               <!-- 푸터 버튼 -->
               <footer class="modal-footer-new">
-                <!-- 🆕 요리 시작 버튼 추가 -->
                 <button
-                  v-if="!isCooked"
-                  class="cook-start-btn"
-                  @click="startCooking"
-                  :disabled="cooking"
-                >
-                  <span class="btn-icon">🍳</span>
-                  <span class="btn-text">{{ cooking ? '요리 중...' : '요리 시작' }}</span>
-                </button>
-                
-                <!-- 🆕 요리 완료 표시 추가 -->
-                <div v-else class="cooked-badge">
-                  <span class="badge-icon">✅</span>
-                  <span class="badge-text">요리 완료!</span>
-                </div>
-                <button
-                  class="add-intake-btn"
+                  class="add-intake-btn full-width"
                   @click="openIntakeModal"
-                  :disabled="!healthInfo || !isCooked"
+                  :disabled="!healthInfo"
                 >
                   <span class="btn-icon">✨</span>
                   <span class="btn-text">먹은 음식에 추가하기</span>
@@ -1084,6 +1103,101 @@ function getDdayClass(dday: number | null | undefined) {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+/* 남은 음식 카드 */
+.leftover-card {
+  background: #fff8e1;
+  border: 2px solid #ffd54f;
+}
+
+.leftover-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.leftover-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px;
+  background: white;
+  border-radius: 10px;
+  border: 1.5px solid #ffecb3;
+  transition: all 0.2s;
+}
+
+.leftover-item:hover {
+  border-color: #ffc107;
+  transform: translateX(4px);
+}
+
+.leftover-info {
+  flex: 1;
+}
+
+.leftover-title {
+  font-weight: 600;
+  font-size: 15px;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.leftover-details {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #666;
+}
+
+.remaining {
+  font-weight: 600;
+  color: #f57c00;
+}
+
+.leftover-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-eat {
+  padding: 8px 16px;
+  background: #4e91ff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-eat:hover {
+  background: #2765cf;
+  transform: translateY(-1px);
+}
+
+.btn-delete-leftover {
+  padding: 8px 12px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-delete-leftover:hover {
+  background: #dc2626;
+  transform: scale(1.05);
+}
+
+/* 먹은 음식 추가 버튼 전체 너비 */
+.add-intake-btn.full-width {
+  flex: none;
+  width: 100%;
+  margin-bottom: 12px;
 }
 
 /* 결과 검색 input */
