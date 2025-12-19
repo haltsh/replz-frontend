@@ -405,7 +405,7 @@ async function eatLeftover(meal: CookedMeal) {
     url: meal.recipe_url,
     image: null,
     ingredients: [],
-    steps: []
+    steps: [],
     _cookedMealId: currentMeal.cooked_meal_id,           
     _remainingPortions: currentMeal.remaining_portions 
   }
