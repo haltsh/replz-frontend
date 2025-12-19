@@ -322,9 +322,9 @@ async function addIntake(portion: number) {
 
     // 🆕 기존 남은 음식을 먹은 경우
     if (selectedRecipe.value._cookedMealId && selectedRecipe.value._remainingPortions) {
-      const newRemaining = selectedRecipe.value._remainingPortions - portion
+      const newRemaining = selectedRecipe.value._remainingPortions * (1 - portion)
       
-      if (newRemaining <= 0) {
+      if (newRemaining <= 0.01) {  // 거의 다 먹었으면 {
         // 다 먹었으면 삭제
         await fetch(`${EXPRESS_URL}/cooked-meals/${selectedRecipe.value._cookedMealId}`, {
           method: 'DELETE'
