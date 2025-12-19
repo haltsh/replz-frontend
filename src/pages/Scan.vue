@@ -249,8 +249,8 @@ function onDaysChange(item: ItemRow) {
             <tr>
               <th class="col-name">식재료명</th>
               <th class="col-category">카테고리</th>
-              <th class="col-quantity">수량</th>
               <th class="col-unit">단위</th>
+              <th class="col-quantity">수량</th>
               <th class="col-days">유통기한(일)</th>
               <th class="col-date">실제 유통기한</th>
               <th class="col-delete">삭제</th>
@@ -449,11 +449,11 @@ function onDaysChange(item: ItemRow) {
 
 .col-name { width: 25%; min-width: 150px; }
 .col-category { width: 15%; min-width: 100px; }
+.col-unit { width: 12%; min-width: 90px; }
 .col-quantity { width: 10%; min-width: 70px; }
 .col-days { width: 15%; min-width: 100px; }
 .col-date { width: 25%; min-width: 130px; }
 .col-delete { width: 10%; min-width: 70px; text-align: center; }
-.col-unit { width: 12%; min-width: 90px; }
 
 
 .item-table input,
