@@ -326,9 +326,8 @@ async function addIntake(portion: number) {
     // 🆕 기존 남은 음식을 먹은 경우
     if (isLeftover && selectedRecipe.value._remainingPortions) {
       const currentRemaining = selectedRecipe.value._remainingPortions
-      const actualEaten = currentRemaining * portion  // 실제로 먹은 양
-      const newRemaining = currentRemaining - actualEaten  // 남은 양
-      
+      const newRemaining = currentRemaining * (1 - portion)
+          
       if (newRemaining <= 0.01) {
         // 다 먹었으면 삭제
         await fetch(`${EXPRESS_URL}/cooked-meals/${selectedRecipe.value._cookedMealId}`, {
@@ -464,6 +463,28 @@ function getDdayClass(dday: number | null | undefined) {
   if (dday <= 7) return 'warning'
   return ''
 }
+
+// 경과 시간 계산
+function getTimeAgo(dateString: string): string {
+  const cookedDate = new Date(dateString)
+  const now = new Date()
+  const diffMs = now.getTime() - cookedDate.getTime()
+  
+  const diffMinutes = Math.floor(diffMs / (1000 * 60))
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  
+  if (diffMinutes < 1) return '방금 전'
+  if (diffMinutes < 60) return `${diffMinutes}분 전`
+  if (diffHours < 24) return `${diffHours}시간 전`
+  if (diffDays === 1) return '어제'
+  if (diffDays < 7) return `${diffDays}일 전`
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}주 전`
+  
+  return cookedDate.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })
+}
+
+
 </script>
 
 <template>
@@ -568,9 +589,13 @@ function getDdayClass(dday: number | null | undefined) {
             <div class="leftover-info">
               <div class="leftover-title">{{ meal.recipe_title }}</div>
               <div class="leftover-details">
-                <span class="remaining">남은 양: {{ Math.floor(Number(meal.remaining_portions) * 100) }}%</span>
-                <span>{{ meal.cooked_date }}</span>
-                <span>{{ Math.floor(Number(meal.calories_per_portion)) }}kcal/인분</span>
+                <span class="remaining">
+                  남은 양: {{ Math.floor(Number(meal.remaining_portions) * 100) }}%
+                </span>
+                <span class="remaining-calories">
+                  {{ Math.floor(Number(meal.remaining_portions) * Number(meal.calories_per_portion)) }}kcal
+                </span>
+                <span>{{ getTimeAgo(meal.cooked_date) }}</span>
               </div>
             </div>
             <div class="leftover-actions">
@@ -2104,4 +2129,13 @@ function getDdayClass(dday: number | null | undefined) {
   font-weight: 600;
   color: #10b981;
 }
+
+.remaining-calories {
+  font-weight: 600;
+  color: #10b981;
+  background: #d1fae5;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
 </style>
