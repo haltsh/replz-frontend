@@ -537,9 +537,9 @@ function getDdayClass(dday: number | null | undefined) {
             <div class="leftover-info">
               <div class="leftover-title">{{ meal.recipe_title }}</div>
               <div class="leftover-details">
-                <span class="remaining">남은 양: {{ (meal.remaining_portions * 100).toFixed(0) }}%</span>
+                <span class="remaining">남은 양: {{ Math.floor(Number(meal.remaining_portions) * 100) }}%</span>
                 <span>{{ meal.cooked_date }}</span>
-                <span>{{ meal.calories_per_portion.toFixed(0) }}kcal/인분</span>
+                <span>{{ Math.floor(Number(meal.calories_per_portion)) }}kcal/인분</span>
               </div>
             </div>
             <div class="leftover-actions">
