@@ -57,9 +57,10 @@ const routes = [
   { 
     path: '/', 
     redirect: () => {
-      // 로그인 상태 확인
+      // 로그인 상태 확인 (isLoggedIn과 user_id 둘 다 체크)
       const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
-      return isLoggedIn ? '/inventory' : '/login'
+      const userId = localStorage.getItem('user_id')
+      return (isLoggedIn && userId) ? '/inventory' : '/login'
     }
   },
   { 
@@ -78,20 +79,31 @@ const router = createRouter({
 })
 
 // ==========================================
-// 네비게이션 가드 (인증 체크) - any 타입 사용
+// 네비게이션 가드 (인증 체크)
 // ==========================================
 router.beforeEach((to: any, from: any, next: any) => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
+  const userId = localStorage.getItem('user_id')
   const requiresAuth = to.meta.requiresAuth
 
-  // 로그인이 필요한 페이지인데 로그인 안 했으면
-  if (requiresAuth && !isLoggedIn) {
+  // 🔒 인증 상태: isLoggedIn과 user_id 둘 다 있어야 함
+  const isAuthenticated = isLoggedIn && userId
+
+  // 로그인이 필요한 페이지인데 인증 안 됐으면
+  if (requiresAuth && !isAuthenticated) {
+    // 인증 정보 초기화 (일관성 유지)
+    localStorage.removeItem('isLoggedIn')
+    localStorage.removeItem('user_id')
     next('/login')
   } 
-  // 로그인 페이지인데 이미 로그인 했으면
-  else if (to.path === '/login' && isLoggedIn) {
+  // 로그인 페이지인데 이미 인증 됐으면
+  else if (to.path === '/login' && isAuthenticated) {
     next('/inventory')
   } 
+  // 회원가입/비밀번호 찾기 페이지인데 이미 인증 됐으면
+  else if ((to.path === '/register' || to.path === '/forgot-password') && isAuthenticated) {
+    next('/inventory')
+  }
   // 그 외에는 정상 진행
   else {
     next()

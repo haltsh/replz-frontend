@@ -66,11 +66,28 @@ const healthLoading = ref(false)
 const showIntakeModal = ref(false)
 const intakeLoading = ref(false)
 const intakeSuccess = ref(false)
-const userId = localStorage.getItem('user_id') || 1
+const userId = computed(() => {
+  const id = localStorage.getItem('user_id')
+  if (!id) {
+    checkAuth() // 재인증 체크
+    return null
+  }
+  return parseInt(id)
+})
 
 // 요리 완료 상태 관리
 const isCooked = ref(false)
 const cooking = ref(false)
+
+const checkAuth = () => {
+  const userId = localStorage.getItem('user_id')
+  if (!userId) {
+    alert('로그인이 필요합니다.')
+    router.push('/login')
+    return false
+  }
+  return true
+}
 
 // 재고 불러오기
 onMounted(async () => {
@@ -108,6 +125,13 @@ async function searchRecipes() {
     error.value = '최소 1개 이상의 재료를 선택해주세요.'
     return
   }
+  // 🔹 userId 검증
+  const storedUserId = localStorage.getItem('user_id')
+  if (!storedUserId) {
+    alert('로그인이 필요합니다.')
+    window.location.href = '/login'
+    return
+  }
 
   loading.value = true
   error.value = ''
@@ -126,7 +150,7 @@ async function searchRecipes() {
       body: JSON.stringify({
         ingredients: selectedArray,  // 검색용: 선택한 재료
         limit: 5,
-        userId: parseInt(localStorage.getItem('user_id') || '1')
+        userId: userId.value
       })
     })
 
@@ -268,7 +292,8 @@ async function startCooking() {
   cooking.value = true
   
   try {
-    const userId = localStorage.getItem('user_id') || '1'
+    const userIdValue = userId.value
+    if (!userIdValue) return
     
     // 레시피에 사용된 재료만큼 재고 차감
     for (const ingredient of selectedRecipe.value.ingredients) {
@@ -333,7 +358,8 @@ async function addIntake(portion: number) {
   intakeLoading.value = true
 
   try {
-    const userId = localStorage.getItem('user_id') || '1'
+    const userIdValue = userId.value
+    if (!userIdValue) return
     const today = new Date().toISOString().split('T')[0]
     
     // 영양 정보만 기록 (재고 차감 없음)
@@ -341,7 +367,7 @@ async function addIntake(portion: number) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        user_id: parseInt(userId),
+        user_id: userIdValue,
         meal_name: selectedRecipe.value.title,
         calories: healthInfo.value.총칼로리 * portion,
         carbs: healthInfo.value.탄수화물 * portion,
