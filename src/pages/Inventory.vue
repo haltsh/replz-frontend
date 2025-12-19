@@ -71,6 +71,15 @@ async function load() {
 }
 
 onMounted(() => {
+  // ✅ 페이지 진입 시 로그인 체크
+  const userId = localStorage.getItem('user_id')
+  if (!userId) {
+    showNotification('로그인이 필요합니다.', 'error')
+    setTimeout(() => {
+      window.location.href = '/login'
+    }, 1500)
+    return
+  }
   load()
   loadItems()
 })
@@ -89,6 +98,17 @@ async function removeItem(id: number) {
 }
 
 async function addInventory() {
+  const userId = localStorage.getItem('user_id')
+  
+  if (!userId) {
+    showNotification('로그인이 필요합니다.', 'error')
+    setTimeout(() => {
+      window.location.href = '/login'  // 일반 리다이렉트
+    }, 1500)  // 1.5초 후 이동 (알림 보여주기 위해)
+    return
+  }
+
+
   if (!newInventory.value.item_id) {
     showNotification('품목을 선택해주세요.', 'error')
     return
@@ -99,8 +119,6 @@ async function addInventory() {
     return
   }
   
-  // ✅ user_id 동적으로 가져오기
-  const userId = localStorage.getItem('user_id') || '1'
   
   // ✅ 프론트엔드 중복 체크
   const existingItem = rows.value.find(
