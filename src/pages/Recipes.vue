@@ -66,28 +66,16 @@ const healthLoading = ref(false)
 const showIntakeModal = ref(false)
 const intakeLoading = ref(false)
 const intakeSuccess = ref(false)
-const userId = computed(() => {
-  const id = localStorage.getItem('user_id')
-  if (!id) {
-    checkAuth() // 재인증 체크
-    return null
-  }
-  return parseInt(id)
-})
 
 // 요리 완료 상태 관리
 const isCooked = ref(false)
 const cooking = ref(false)
 
-const checkAuth = () => {
-  const userId = localStorage.getItem('user_id')
-  if (!userId) {
-    alert('로그인이 필요합니다.')
-    router.push('/login')
-    return false
-  }
-  return true
-}
+const userId = computed(() => {
+  const id = localStorage.getItem('user_id')
+  return id ? parseInt(id) : null
+})
+
 
 // 재고 불러오기
 onMounted(async () => {
@@ -123,13 +111,6 @@ function toggleAll() {
 async function searchRecipes() {
   if (selectedIngredients.value.size === 0) {
     error.value = '최소 1개 이상의 재료를 선택해주세요.'
-    return
-  }
-  // 🔹 userId 검증
-  const storedUserId = localStorage.getItem('user_id')
-  if (!storedUserId) {
-    alert('로그인이 필요합니다.')
-    window.location.href = '/login'
     return
   }
 
@@ -306,7 +287,7 @@ async function startCooking() {
         const newQuantity = inventoryItem.quantity - 1
         
         if (newQuantity <= 0) {
-          await fetch(`${EXPRESS_URL}/inventories/${inventoryItem.inventory_id}?user_id=${userId}`, {
+          await fetch(`${EXPRESS_URL}/inventories/${inventoryItem.inventory_id}?user_id=${userIdValue}`, {
             method: 'DELETE'
           })
         } else {
@@ -314,7 +295,7 @@ async function startCooking() {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              user_id: parseInt(userId),
+              user_id: userIdValue,
               quantity: newQuantity
             })
           })
