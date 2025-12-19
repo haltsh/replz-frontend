@@ -6,7 +6,7 @@ import { API_BASE } from '@/config/api'
 type Row = {
   inventory_id: number; item_id: number; item_name: string;
   quantity: number; expiration_date?: string|null; purchased_date?: string|null;
-  dday?: number|null; created_at?: string; updated_at?: string;
+  dday?: number|null; created_at?: string; updated_at?: string; unit?: string;
 }
 
 type Item = {
@@ -22,6 +22,7 @@ const q = ref('')
 const newInventory = ref({
   item_id: 0,
   quantity: 1,
+  unit: '개',
   expiration_date: ''
 })
 
@@ -231,7 +232,20 @@ function getDdayStyle(dday: number | null | undefined) {
                     v-model.number="newInventory.quantity" 
                     class="form-input"
                     min="1"
+                    step="0.1"
                   />
+                </div>
+                <div class="form-group">
+                  <label>단위</label>
+                  <select v-model="newInventory.unit" class="form-input">
+                    <option value="개">개</option>
+                    <option value="g">g</option>
+                    <option value="kg">kg</option>
+                    <option value="ml">ml</option>
+                    <option value="L">L</option>
+                    <option value="묶음">묶음</option>
+                    <option value="팩">팩</option>
+                  </select>
                 </div>
               </div>
               <div class="form-row">
@@ -280,7 +294,7 @@ function getDdayStyle(dday: number | null | undefined) {
                 <div class="item-info">
                   <div class="item-name">{{ r.item_name }}</div>
                   <div class="item-details">
-                    <span class="quantity">수량: {{ r.quantity }}</span>
+                    <span class="quantity">수량: {{ r.quantity }}{{ r.unit || '개' }}</span>
                     <span class="expiry">{{ r.expiration_date || '-' }}</span>
                   </div>
                 </div>
