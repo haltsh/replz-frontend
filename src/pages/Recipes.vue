@@ -29,6 +29,8 @@ type RecipeDetail = {
   steps: string[]
   tips?: string
   url: string
+  _cookedMealId?: number
+  _remainingPortions?: number
 }
 
 type HealthInfo = {
@@ -318,8 +320,30 @@ async function addIntake(portion: number) {
       throw new Error('먹은 음식 추가에 실패했습니다.')
     }
 
-    // 🆕 1인분 전체를 먹지 않았다면 cooked_meals에 저장
-    if (portion < 1) {
+    // 🆕 기존 남은 음식을 먹은 경우
+    if (selectedRecipe.value._cookedMealId && selectedRecipe.value._remainingPortions) {
+      const newRemaining = selectedRecipe.value._remainingPortions - portion
+      
+      if (newRemaining <= 0) {
+        // 다 먹었으면 삭제
+        await fetch(`${EXPRESS_URL}/cooked-meals/${selectedRecipe.value._cookedMealId}`, {
+          method: 'DELETE'
+        })
+      } else {
+        // 남은 양 업데이트
+        await fetch(`${EXPRESS_URL}/cooked-meals/${selectedRecipe.value._cookedMealId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            remaining_portions: newRemaining
+          })
+        })
+      }
+      
+      await loadCookedMeals()
+    }
+    // 🆕 새로운 레시피를 먹은 경우
+    else if (portion < 1) {
       const remaining = 1 - portion
       
       await fetch(`${EXPRESS_URL}/cooked-meals`, {
@@ -339,7 +363,6 @@ async function addIntake(portion: number) {
         })
       })
       
-      // 남은 음식 목록 새로고침
       await loadCookedMeals()
     }
 
@@ -383,6 +406,8 @@ async function eatLeftover(meal: CookedMeal) {
     image: null,
     ingredients: [],
     steps: []
+    _cookedMealId: currentMeal.cooked_meal_id,           
+    _remainingPortions: currentMeal.remaining_portions 
   }
   
   // 건강 정보를 1인분 기준으로 설정
