@@ -12,6 +12,7 @@ type ItemRow = {
   item_name: string
   category: string
   quantity: number
+  unit: string
   expiration_date: string | null
   basic_expiration_days: number | null
 }
@@ -38,6 +39,17 @@ const categoryExpirationDays: Record<string, number> = {
   '가공식품': 30,
   '곡류': 30,
   '기타': 7
+}
+
+const categoryDefaultUnit: Record<string, string> = {
+  '채소': '개',
+  '과일': '개',
+  '육류': 'g',
+  '생선': 'g',
+  '유제품': 'ml',
+  '가공식품': '개',
+  '곡류': 'kg',
+  '기타': '개'
 }
 
 function calculateExpirationDate(days: number): string {
@@ -76,6 +88,7 @@ async function uploadAndExtract() {
             item_name: String(itemName).trim(),
             category: category || '기타',
             quantity: Number(quantity) || 1,
+            unit: categoryDefaultUnit[category] || '개',
             basic_expiration_days: Number(basicDays) || categoryExpirationDays[category] || 7,
             expiration_date: expirationDate || null
           })
@@ -84,6 +97,7 @@ async function uploadAndExtract() {
             item_name: String(itemName).trim(),
             category: '기타',
             quantity: 1,
+            unit: '개',
             basic_expiration_days: 7,
             expiration_date: null
           })
@@ -94,6 +108,7 @@ async function uploadAndExtract() {
         item_name: String(x.item_name || x || '').trim(),
         category: x.category || '기타',
         quantity: Number(x.quantity) || 1,
+        unit: x.unit || categoryDefaultUnit[x.category] || '개',
         basic_expiration_days: Number(x.basic_expiration_days) || 7,
         expiration_date: x.expiration_date || null
       }))
@@ -148,7 +163,7 @@ async function saveToInventory() {
   try {
     // ✅ user_id 제거 (API 함수에서 자동으로 가져옴)
     const payload = {
-      items: items.value.map(({ item_name, quantity, expiration_date, basic_expiration_days }) => {
+      items: items.value.map(({ item_name, quantity,unit, expiration_date, basic_expiration_days }) => {
         let finalDate = expiration_date
         if (!finalDate && basic_expiration_days) {
           finalDate = calculateExpirationDate(basic_expiration_days)
@@ -157,6 +172,7 @@ async function saveToInventory() {
         return {
           item_name,
           quantity,
+          unit,
           expiration_date: finalDate,
         }
       }),
@@ -180,6 +196,7 @@ function onCategoryChange(item: ItemRow) {
   const defaultDays = categoryExpirationDays[item.category] || 7
   item.basic_expiration_days = defaultDays
   item.expiration_date = calculateExpirationDate(defaultDays)
+  item.unit = categoryDefaultUnit[item.category] || '개'
 }
 
 function onDaysChange(item: ItemRow) {
@@ -233,6 +250,7 @@ function onDaysChange(item: ItemRow) {
               <th class="col-name">식재료명</th>
               <th class="col-category">카테고리</th>
               <th class="col-quantity">수량</th>
+              <th class="col-unit">단위</th>
               <th class="col-days">유통기한(일)</th>
               <th class="col-date">실제 유통기한</th>
               <th class="col-delete">삭제</th>
@@ -253,6 +271,17 @@ function onDaysChange(item: ItemRow) {
                   <option>가공식품</option>
                   <option>곡류</option>
                   <option>기타</option>
+                </select>
+              </td>
+              <td class="col-unit">
+                <select v-model="item.unit">
+                  <option value="개">개</option>
+                  <option value="g">g</option>
+                  <option value="kg">kg</option>
+                  <option value="ml">ml</option>
+                  <option value="L">L</option>
+                  <option value="묶음">묶음</option>
+                  <option value="팩">팩</option>
                 </select>
               </td>
               <td class="col-quantity">
@@ -424,6 +453,8 @@ function onDaysChange(item: ItemRow) {
 .col-days { width: 15%; min-width: 100px; }
 .col-date { width: 25%; min-width: 130px; }
 .col-delete { width: 10%; min-width: 70px; text-align: center; }
+.col-unit { width: 12%; min-width: 90px; }
+
 
 .item-table input,
 .item-table select {
