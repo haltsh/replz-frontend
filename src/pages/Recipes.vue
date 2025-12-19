@@ -519,6 +519,40 @@ function getDdayClass(dday: number | null | undefined) {
           </button>
         </div>
       </section>
+      <!-- 남은 음식 목록 -->
+      <section v-if="cookedMeals.length > 0" class="card leftover-card">
+        <div class="section-header">
+          <h3 class="section-title">
+            🍱 조리된 음식
+            <span class="count-badge">{{ cookedMeals.length }}개</span>
+          </h3>
+        </div>
+
+        <div class="leftover-list">
+          <div
+            v-for="meal in cookedMeals"
+            :key="meal.cooked_meal_id"
+            class="leftover-item"
+          >
+            <div class="leftover-info">
+              <div class="leftover-title">{{ meal.recipe_title }}</div>
+              <div class="leftover-details">
+                <span class="remaining">남은 양: {{ (meal.remaining_portions * 100).toFixed(0) }}%</span>
+                <span>{{ meal.cooked_date }}</span>
+                <span>{{ meal.calories_per_portion.toFixed(0) }}kcal/인분</span>
+              </div>
+            </div>
+            <div class="leftover-actions">
+              <button class="btn-eat" @click="eatLeftover(meal)">
+                먹기
+              </button>
+              <button class="btn-delete-leftover" @click="deleteCookedMeal(meal.cooked_meal_id)">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
       <!-- 로딩 상태 -->
       <div v-if="loading" class="loading-state card">
         <div class="spinner"></div>
