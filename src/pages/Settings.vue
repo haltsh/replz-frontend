@@ -4,6 +4,11 @@ import { useRouter } from 'vue-router'
 import { API_BASE } from '@/config/api'
 import { getInventory } from '@/api/index.ts'
 
+const userId = computed(() => {
+  const id = localStorage.getItem('user_id')
+  return id ? parseInt(id) : null
+})
+
 const router = useRouter()
 
 // 권장 섭취량 기준
@@ -45,10 +50,10 @@ const todayIntake = ref({
 
 async function loadDailyStandardsOnce() {
   try {
-    const userId = localStorage.getItem('user_id') || 1
+    const userIdValue = userId.value
 
     const res = await fetch(
-      `${API_BASE}/health/standards/${userId}`
+      `${API_BASE}/health/standards/${userIdValue}`
     )
 
     if (!res.ok) return
@@ -149,8 +154,8 @@ const weightChartData = computed(() => {
 async function loadHealthProfile() {
   loading.value = true
   try {
-    const userId = localStorage.getItem('user_id') || 1
-    const response = await fetch(`${API_BASE}/users/${userId}`)
+    const userIdValue = userId.value
+    const response = await fetch(`${API_BASE}/users/${userIdValue}`)
     
     if (!response.ok) throw new Error('프로필 로드 실패')
     
@@ -182,9 +187,9 @@ async function loadHealthProfile() {
 // 오늘의 섭취량 불러오기
 async function loadTodayIntake() {
   try {
-    const userId = localStorage.getItem('user_id') || 1
+    const userIdValue = userId.value
     const today = new Date().toISOString().split('T')[0]
-    const response = await fetch(`${API_BASE}/health/intake/${userId}?date=${today}`)
+    const response = await fetch(`${API_BASE}/health/intake/${userIdValue}?date=${today}`)
     
     if (response.ok) {
       const data = await response.json()
@@ -198,8 +203,9 @@ async function loadTodayIntake() {
 // 몸무게 기록 불러오기 (2주간)
 async function loadWeightRecords() {
   try {
-    const userId = localStorage.getItem('user_id') || 1
-    const response = await fetch(`${API_BASE}/health/weight/${userId}`)
+    const userIdValue = userId.value
+    if (!userIdValue) return
+    const response = await fetch(`${API_BASE}/health/weight/${userIdValue}`)
     
     if (response.ok) {
       const data = await response.json()
@@ -220,8 +226,9 @@ async function loadWeightRecords() {
 // 최근 5일 식단 불러오기
 async function loadRecentMeals() {
   try {
-    const userId = localStorage.getItem('user_id') || 1
-    const response = await fetch(`${API_BASE}/health/meals/${userId}?days=5`)
+    const userIdValue = userId.value
+    if (!userIdValue) return
+    const response = await fetch(`${API_BASE}/health/meals/${userIdValue}?days=5`)
     
     if (response.ok) {
       const data = await response.json()
@@ -241,14 +248,15 @@ async function saveTodayWeight() {
   
   savingWeight.value = true
   try {
-    const userId = localStorage.getItem('user_id') || 1
+    const userIdValue = userId.value
+    if (!userIdValue) return
     const today = new Date().toISOString().split('T')[0]
     
     const response = await fetch(`${API_BASE}/health/weight`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        user_id: userId,
+        user_id: userIdValue,
         weight: Number(todayWeight.value),
         record_date: today
       })
@@ -425,8 +433,9 @@ async function saveHealthProfile() {
 
   saving.value = true
   try {
-    const userId = localStorage.getItem('user_id') || 1
-    const response = await fetch(`${API_BASE}/users/${userId}/health`, {
+    const userIdValue = userId.value
+    if (!userIdValue) return
+    const response = await fetch(`${API_BASE}/users/${userIdValue}/health`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
