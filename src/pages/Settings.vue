@@ -560,6 +560,10 @@ onMounted(async () => {
             {{ saving ? '저장 중...' : '시작하기' }}
           </button>
         </form>
+        <!-- 🆕 로그아웃 버튼 추가 -->
+        <button @click="handleLogout" class="logout-btn" style="margin-top: 12px;">
+          로그아웃
+        </button>
       </div>
     </div>
 
