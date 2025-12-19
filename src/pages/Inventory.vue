@@ -33,6 +33,11 @@ const notification = ref({
   type: 'success' as 'success' | 'error'
 })
 
+const userId = computed(() => {
+  const id = localStorage.getItem('user_id')
+  return id ? parseInt(id) : null
+})
+
 function showNotification(message: string, type: 'success' | 'error' = 'success') {
   notification.value = { show: true, message, type }
   setTimeout(() => {
@@ -116,13 +121,14 @@ async function addInventory() {
   isAdding.value = true
   
   try {
-    const userId = localStorage.getItem('user_id')
+    const userIdValue = userId.value
+    if (!userIdValue) return
     
     const response = await fetch(`${API_BASE}/inventories`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        user_id: parseInt(userId),
+        user_id: userIdValue,
         item_id: newInventory.value.item_id,
         quantity: newInventory.value.quantity,
         expiration_date: newInventory.value.expiration_date
