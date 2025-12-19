@@ -60,7 +60,7 @@ const routes = [
       // 로그인 상태 확인 (isLoggedIn과 user_id 둘 다 체크)
       const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
       const userId = localStorage.getItem('user_id')
-      return (isLoggedIn && userId) ? '/inventory' : '/login'
+      return (isLoggedIn && userId) ? '/settings' : '/login'
     }
   },
   { 
@@ -98,11 +98,11 @@ router.beforeEach((to: any, from: any, next: any) => {
   } 
   // 로그인 페이지인데 이미 인증 됐으면
   else if (to.path === '/login' && isAuthenticated) {
-    next('/inventory')
+    next('/settings')
   } 
   // 회원가입/비밀번호 찾기 페이지인데 이미 인증 됐으면
   else if ((to.path === '/register' || to.path === '/forgot-password') && isAuthenticated) {
-    next('/inventory')
+    next('/settings')
   }
   // 그 외에는 정상 진행
   else {
