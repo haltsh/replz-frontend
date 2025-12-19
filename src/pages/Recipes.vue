@@ -396,6 +396,7 @@ async function loadCookedMeals() {
 
 // 남은 음식 섭취
 async function eatLeftover(meal: CookedMeal) {
+  const currentMeal = { ...meal }
   showIntakeModal.value = true
   intakeSuccess.value = false
   
