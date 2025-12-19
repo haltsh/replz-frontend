@@ -10,6 +10,7 @@ type InventoryItem = {
   quantity: number
   expiration_date?: string | null
   dday?: number | null
+  unit?: string
 }
 
 type Recipe = {
@@ -537,7 +538,7 @@ function getTimeAgo(dateString: string): string {
               </div>
 
               <div class="ingredient-info">
-                <span class="quantity">{{ item.quantity }}개</span>
+                <span class="quantity">{{ item.quantity }}{{ item.unit || '개' }}</span>
                 <span v-if="item.dday != null" class="dday">
                   {{ item.dday <= 0 ? '기한만료' : `D-${item.dday}` }}
                 </span>
