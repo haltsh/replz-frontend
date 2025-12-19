@@ -146,6 +146,7 @@ async function addInventory() {
     newInventory.value = {
       item_id: uniqueItems.value[0]?.item_id || 0,
       quantity: 1,
+      unit: '개',
       expiration_date: ''
     }
     
