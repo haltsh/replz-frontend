@@ -249,8 +249,8 @@ function onDaysChange(item: ItemRow) {
             <tr>
               <th class="col-name">식재료명</th>
               <th class="col-category">카테고리</th>
-              <th class="col-unit">단위</th>
               <th class="col-quantity">수량</th>
+              <th class="col-unit">단위</th>
               <th class="col-days">유통기한(일)</th>
               <th class="col-date">실제 유통기한</th>
               <th class="col-delete">삭제</th>
@@ -273,6 +273,9 @@ function onDaysChange(item: ItemRow) {
                   <option>기타</option>
                 </select>
               </td>
+              <td class="col-quantity">
+                <input type="number" min="1" v-model.number="item.quantity" />
+              </td>
               <td class="col-unit">
                 <select v-model="item.unit">
                   <option value="개">개</option>
@@ -283,9 +286,6 @@ function onDaysChange(item: ItemRow) {
                   <option value="묶음">묶음</option>
                   <option value="팩">팩</option>
                 </select>
-              </td>
-              <td class="col-quantity">
-                <input type="number" min="1" v-model.number="item.quantity" />
               </td>
               <td class="col-days">
                 <input 
