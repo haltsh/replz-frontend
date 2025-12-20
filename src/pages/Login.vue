@@ -56,7 +56,6 @@ async function handleLogin() {
       <div class="login-card">
         <div class="logo">
           <img src="/logo.png" alt="Replz Logo" class="logo-image" />
-          <p>스마트 냉장고 관리 시스템</p>
         </div>
 
         <form @submit.prevent="handleLogin" class="login-form">
