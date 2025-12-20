@@ -70,8 +70,8 @@ async function handleRegister() {
     <div class="register-container">
       <div class="register-card">
         <div class="logo">
-          <h1>🧊 Smart Replzerator</h1>
-          <p>회원가입</p>
+          <img src="/logo.png" alt="Replz Logo" class="logo-image" />
+          <p class="subtitle">회원가입</p>
         </div>
 
         <form @submit.prevent="handleRegister" class="form">
@@ -135,7 +135,6 @@ async function handleRegister() {
 </template>
 
 <style scoped>
-/* 스크롤 가능하지만 스크롤바 숨김 */
 .register-page {
   width: 100%;
   height: 100%;
@@ -143,7 +142,6 @@ async function handleRegister() {
   overflow-x: hidden;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   
-  /* 스크롤바 숨기기 */
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -163,7 +161,7 @@ async function handleRegister() {
 .register-card {
   background: white;
   border-radius: 20px;
-  padding: 24px 28px;
+  padding: 20px 28px 24px 28px;
   width: 100%;
   max-width: 400px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -172,24 +170,29 @@ async function handleRegister() {
 .logo {
   text-align: center;
   margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
 }
 
-.logo h1 {
-  margin: 0 0 4px 0;
-  font-size: 20px;
-  color: #333;
+.logo-image {
+  height: 70px;
+  width: auto;
+  object-fit: contain;
 }
 
-.logo p {
+.subtitle {
   margin: 0;
   color: #666;
   font-size: 14px;
+  font-weight: 500;
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .form-group {
@@ -215,6 +218,7 @@ async function handleRegister() {
 .form-group input:focus {
   outline: none;
   border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
 }
 
 .form-group input:disabled {
@@ -271,6 +275,10 @@ async function handleRegister() {
 @media (max-width: 480px) {
   .register-card {
     padding: 20px 24px;
+  }
+  
+  .logo-image {
+    height: 80px;
   }
 }
 </style>
