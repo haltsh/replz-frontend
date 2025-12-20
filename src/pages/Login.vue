@@ -51,7 +51,6 @@ async function handleLogin() {
 </script>
 
 <template>
-  <!-- ✅ 스크롤 가능한 컨테이너 추가 -->
   <div class="login-page">
     <div class="login-container">
       <div class="login-card">
@@ -105,7 +104,6 @@ async function handleLogin() {
           </a>
         </div>
 
-        <!-- 회원가입 버튼 -->
         <div class="register-section">
           <div class="divider">
             <span>OR</span>
@@ -124,7 +122,6 @@ async function handleLogin() {
 </template>
 
 <style scoped>
-/* ✅ 최상위 컨테이너: 스크롤 가능하지만 스크롤바 숨김 */
 .login-page {
   width: 100%;
   height: 100%;
@@ -132,12 +129,10 @@ async function handleLogin() {
   overflow-x: hidden;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   
-  /* 스크롤바 숨기기 - 모든 브라우저 */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE, Edge */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-/* 스크롤바 숨기기 - Chrome, Safari, Opera */
 .login-page::-webkit-scrollbar {
   display: none;
 }
@@ -161,25 +156,30 @@ async function handleLogin() {
 
 .logo {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
 }
 
 .icon {
-  font-size: 40px;
-  margin-bottom: 6px;
+  font-size: 56px;
+  margin-bottom: 4px;
 }
 
 .logo h1 {
-  margin: 0 0 4px 0;
-  font-size: 20px;
+  margin: 0;
+  font-size: 32px;
   color: #333;
   font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 .logo p {
   margin: 0;
   color: #666;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .login-form {
@@ -331,11 +331,11 @@ async function handleLogin() {
   }
 
   .icon {
-    font-size: 48px;
+    font-size: 64px;
   }
 
   .logo h1 {
-    font-size: 22px;
+    font-size: 36px;
   }
 }
 </style>
