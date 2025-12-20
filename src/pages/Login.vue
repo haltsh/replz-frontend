@@ -148,7 +148,7 @@ async function handleLogin() {
 .login-card {
   background: white;
   border-radius: 20px;
-  padding: 24px 28px;
+  padding: 20px 28px 24px 28px;
   width: 100%;
   max-width: 400px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -156,21 +156,21 @@ async function handleLogin() {
 
 .logo {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 }
 
 .icon {
-  font-size: 56px;
-  margin-bottom: 4px;
+  font-size: 48px;
+  margin-bottom: 2px;
 }
 
 .logo h1 {
   margin: 0;
-  font-size: 32px;
+  font-size: 28px;
   color: #333;
   font-weight: 700;
   letter-spacing: -0.5px;
@@ -179,14 +179,14 @@ async function handleLogin() {
 .logo p {
   margin: 0;
   color: #666;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
 .form-group {
