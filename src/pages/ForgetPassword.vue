@@ -107,7 +107,8 @@ function goBack() {
     <div class="forgot-container">
       <div class="forgot-card">
         <div class="logo">
-          <h1>🔑 비밀번호 찾기</h1>
+          <img src="/logo.png" alt="Replz Logo" class="logo-image" />
+          <h2>🔑 비밀번호 찾기</h2>
         </div>
 
         <!-- 1단계: 본인 확인 -->
@@ -194,7 +195,6 @@ function goBack() {
 </template>
 
 <style scoped>
-/* 스크롤 가능하지만 스크롤바 숨김 */
 .forgot-page {
   width: 100%;
   height: 100%;
@@ -202,7 +202,6 @@ function goBack() {
   overflow-x: hidden;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   
-  /* 스크롤바 숨기기 */
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -222,7 +221,7 @@ function goBack() {
 .forgot-card {
   background: white;
   border-radius: 20px;
-  padding: 24px 28px;
+  padding: 20px 28px 24px 28px;
   width: 100%;
   max-width: 400px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -231,18 +230,29 @@ function goBack() {
 .logo {
   text-align: center;
   margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
 }
 
-.logo h1 {
+.logo-image {
+  height: 70px;
+  width: auto;
+  object-fit: contain;
+}
+
+.logo h2 {
   margin: 0;
   font-size: 20px;
   color: #333;
+  font-weight: 600;
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .description {
@@ -250,7 +260,7 @@ function goBack() {
   color: #666;
   font-size: 13px;
   line-height: 1.5;
-  margin: 0 0 8px 0;
+  margin: 0 0 6px 0;
 }
 
 .form-group {
@@ -276,6 +286,7 @@ function goBack() {
 .form-group input:focus {
   outline: none;
   border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
 }
 
 .form-group input:disabled {
@@ -345,6 +356,10 @@ function goBack() {
 @media (max-width: 480px) {
   .forgot-card {
     padding: 20px 24px;
+  }
+  
+  .logo-image {
+    height: 80px;
   }
 }
 </style>
