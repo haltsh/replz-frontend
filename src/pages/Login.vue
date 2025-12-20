@@ -55,8 +55,7 @@ async function handleLogin() {
     <div class="login-container">
       <div class="login-card">
         <div class="logo">
-          <div class="icon">🧊</div>
-          <h1>Replz!</h1>
+          <img src="/logo.png" alt="Replz Logo" class="logo-image" />
           <p>스마트 냉장고 관리 시스템</p>
         </div>
 
@@ -160,12 +159,21 @@ async function handleLogin() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
 }
 
-.icon {
-  font-size: 48px;
-  margin-bottom: 2px;
+.logo-image {
+  height: 80px;
+  width: auto;
+  object-fit: contain;
+}
+
+.logo h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #333;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 .logo h1 {
@@ -330,12 +338,8 @@ async function handleLogin() {
     padding: 32px 24px;
   }
 
-  .icon {
-    font-size: 64px;
-  }
-
-  .logo h1 {
-    font-size: 36px;
+  .logo-image {
+    height: 90px;
   }
 }
 </style>
