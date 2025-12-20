@@ -57,7 +57,7 @@ async function handleLogin() {
       <div class="login-card">
         <div class="logo">
           <div class="icon">🧊</div>
-          <h1>Smart Replzerator</h1>
+          <h1>Replz!</h1>
           <p>스마트 냉장고 관리 시스템</p>
         </div>
 
